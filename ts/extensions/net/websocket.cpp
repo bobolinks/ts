@@ -303,8 +303,6 @@ namespace net { namespace websocket {
             return;
         }
         
-        printf("<<%s\n", packet->c_str());
-        
         session_t& ssn = *pssn.get();
         ssn.sRxBuf->append(*packet.get());
         
@@ -442,7 +440,6 @@ namespace net { namespace websocket {
         //construct resuest
         std::shared_ptr<std::string> packet(new std::string);
         
-#if 1
         ts::string::format(*packet.get(), "GET %s HTTP/1.1\r\n"
                            "Host: %s\r\n"
                            "Upgrade: websocket\r\n"
@@ -454,44 +451,7 @@ namespace net { namespace websocket {
                            "Sec-WebSocket-Version: 13\r\n"
                            "Accept-Encoding: gzip, deflate, br\r\n"
                            "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8\r\n"
-                           "Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits\r\n"
-                           "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36\r\n"
-                           "Cookie: __cfduid=d4a849ed96fbc6d929cf7f941f62e67b61531732903; gr_user_id=e294fe61-1760-4ea4-ae3b-e061cde2f1f6; _ga=GA1.2.967375190.1531732906; _gid=GA1.2.894532720.1531732906; grwng_uid=95f1ece8-1c2e-47a6-9d3d-35fa5f9e902d; __zlcmid=nQhUhVGCk8oQQ8; 8838a5745a973a12_gr_session_id=096c1d6a-fb35-4e81-9b3b-099c0720bd9c; 8838a5745a973a12_gr_session_id_096c1d6a-fb35-4e81-9b3b-099c0720bd9c=true; SESSION=70376cd7-e218-4adf-87cb-6e140e6bd37d; ADRUM=s=1531986381322&r=https%%3A%%2F%%2Fwww.hbg.com%%2Fzh-cn%%2Fcoin_coin%%2Fexchange%%2F%%3F396617505\r\n"
                            "\r\n", ssn.sUrl.c_str(), ssn.sHost.c_str(), ssn.sOrigin.c_str());
-#else
-        *packet.get() = ""
-        "GET /zh-cn/btc_usdt/exchange/ HTTP/1.1\r\n"
-        "Host: www.hbg.com\r\n"
-        "Origin: https://www.hbg.com\r\n"
-        "accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8\r\n"
-        "accept-encoding: gzip, deflate, br\r\n"
-        "accept-language: zh-CN,zh;q=0.9,en;q=0.8\r\n"
-        "cache-control: max-age=0\r\n"
-        "cookie: _uab_collina=153199044947128087267389; _uab_collina=153199257723436547127946; 8838a5745a973a12_gr_session_id=d32dcd4d-bd45-4232-9578-27d1655f84fc; __cfduid=d283e10722fd6df38ee1263c2558caf5d1531989058; gr_user_id=981128fc-3cce-48e0-b1b1-bb007733daf8; grwng_uid=f7f54fee-0368-4633-a7df-e26b42e66382; SESSION=e8b85d83-0b70-41d6-84e1-17e2efce2ecc; _ga=GA1.2.2016936988.1531989064; _gid=GA1.2.61143656.1531989064; __zlcmid=nThV9ofF4idqSA; HB-UC-TOKEN=pBGf9EtAP%%2BNV8TOhfkw9QthCuAmbLVhC%%2BAAHWaOKdkXkY6QVHs2tqQJIdcnjhZuG9DpVANaVpKobUxuZXcNEooLHF5hxoUEDGQInhPkEOMWdDlMssFy0KCG%%2Fge6YG3KRkwOgAuEKiLf74mE0L6ZzuSFlBfAXqu8D%%2FhtoAi462R8%%3D; HB-PRO-TOKEN=d3M190UC_xyclhuAraLAzLpXqcz-DEinIy6RaCKj7z0Y-uOP2m0-gvjE57ad1qDF; HB-VOTE-TOKEN=ee5b23e685164c4b85fad86e571ca11b; 8838a5745a973a12_gr_last_sent_sid_with_cs1=d32dcd4d-bd45-4232-9578-27d1655f84fc; 8838a5745a973a12_gr_last_sent_cs1=A7FE8D839BDD973EE9DF3B65333203101737C3AE39E4231B4192D8B976BE3C0E; 8838a5745a973a12_gr_session_id_d32dcd4d-bd45-4232-9578-27d1655f84fc=true; HB-OLD-TOKEN=d3M190UC_xyclhuAraLAzLpXqcz-DEinIy6RaCKj7z0Y-uOP2m0-gvjE57ad1qDF; HBP_inviterId=11116490; 8838a5745a973a12_gr_cs1=A7FE8D839BDD973EE9DF3B65333203101737C3AE39E4231B4192D8B976BE3C0E; _gat_gtag_UA_108346576_1=1; ADRUM=s=1531995947212&r=https%%3A%%2F%%2Fwww.hbg.com%%2Fzh-cn%%2Fbtc_usdt%%2Fexchange%%2F%%3F0\r\n"
-        "if-modified-since: Wed, 18 Jul 2018 10:31:52 GMT\r\n"
-        "referer: https://www.hbg.com/btc_usdt/exchange/\r\n"
-        "upgrade-insecure-requests: 1\r\n"
-        "user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36\r\n"
-        "\r\n"
-#if 0
-        "GET wss://www.hbg.com/-/s/pro/ws HTTP/1.1\r\n"
-        "Host: www.hbg.com\r\n"
-        "Connection: Upgrade\r\n"
-        "Pragma: no-cache\r\n"
-        "Cache-Control: no-cache\r\n"
-        "Upgrade: websocket\r\n"
-        "Origin: https://www.hbg.com\r\n"
-        "Sec-WebSocket-Version: 13\r\n"
-        "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36\r\n"
-        "Accept-Encoding: gzip, deflate, br\r\n"
-        "Accept-Language: zh-CN,zh;q=0.9,en;q=0.8\r\n"
-        "Cookie: 8838a5745a973a12_gr_session_id=d32dcd4d-bd45-4232-9578-27d1655f84fc; __cfduid=d283e10722fd6df38ee1263c2558caf5d1531989058; gr_user_id=981128fc-3cce-48e0-b1b1-bb007733daf8; grwng_uid=f7f54fee-0368-4633-a7df-e26b42e66382; SESSION=e8b85d83-0b70-41d6-84e1-17e2efce2ecc; _ga=GA1.2.2016936988.1531989064; _gid=GA1.2.61143656.1531989064; __zlcmid=nThV9ofF4idqSA; HB-UC-TOKEN=pBGf9EtAP%%2BNV8TOhfkw9QthCuAmbLVhC%%2BAAHWaOKdkXkY6QVHs2tqQJIdcnjhZuG9DpVANaVpKobUxuZXcNEooLHF5hxoUEDGQInhPkEOMWdDlMssFy0KCG%%2Fge6YG3KRkwOgAuEKiLf74mE0L6ZzuSFlBfAXqu8D%%2FhtoAi462R8%%3D; HB-PRO-TOKEN=d3M190UC_xyclhuAraLAzLpXqcz-DEinIy6RaCKj7z0Y-uOP2m0-gvjE57ad1qDF; HB-VOTE-TOKEN=ee5b23e685164c4b85fad86e571ca11b; 8838a5745a973a12_gr_last_sent_sid_with_cs1=d32dcd4d-bd45-4232-9578-27d1655f84fc; 8838a5745a973a12_gr_last_sent_cs1=A7FE8D839BDD973EE9DF3B65333203101737C3AE39E4231B4192D8B976BE3C0E; 8838a5745a973a12_gr_session_id_d32dcd4d-bd45-4232-9578-27d1655f84fc=true; HB-OLD-TOKEN=d3M190UC_xyclhuAraLAzLpXqcz-DEinIy6RaCKj7z0Y-uOP2m0-gvjE57ad1qDF; _gat=1; ADRUM=s=1531992638556&r=https%%3A%%2F%%2Fwww.hbg.com%%2Fzh-cn%%2Fbtc_usdt%%2Fexchange%%2F%%3F0; 8838a5745a973a12_gr_cs1=A7FE8D839BDD973EE9DF3B65333203101737C3AE39E4231B4192D8B976BE3C0E\r\n"
-        "Sec-WebSocket-Key: hRaOlBYWuA3jOJAgfBj3rg==\r\n"
-        "Sec-WebSocket-Extensions: permessage-deflate; client_max_window_bits\r\n"
-        "\r\n"
-#endif
-        ;
-#endif
 
         send(packet);
     }

@@ -214,7 +214,6 @@ namespace net {
 
         std::shared_ptr<package_t> &pa = _packages.front();
         int left = (int)pa->data->length() - pa->consumed;
-        printf(">>[%d]%s\n", left, pa->data.get()->c_str());
         ssize_t tx = _streamer.get() ? _streamer->send(*this, (const uint8_t*)pa->data.get()->c_str() + pa->consumed, left) : ::send(_fd, pa->data.get()->c_str() + pa->consumed, left, 0);
         if (tx < 0) {
             return (int)tx;
