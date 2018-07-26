@@ -36,6 +36,7 @@ namespace net { namespace websocket {
         bool    connect(const char* url, const char* origin = nullptr, uint64_t timeout = 0 /*in seconds*/);
         void    sendMessage(std::shared_ptr<std::string>& message);
         void    sendHttpRequest(std::shared_ptr<std::string>& message);
+        void    ping(std::shared_ptr<std::string>& message);
 
     private:
         //socket functional

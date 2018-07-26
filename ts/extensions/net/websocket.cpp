@@ -409,7 +409,12 @@ namespace net { namespace websocket {
                 receivedData.insert(receivedData.end(), rxbuf.begin()+ws.header_size, rxbuf.begin()+ws.header_size+(size_t)ws.bodylen);// just feed
                 if (ws.fin) {
                     std::shared_ptr<std::string> msg = ssn.sBody;
-                    onMessage(msg);
+                    try {
+                        onMessage(msg);
+                    }
+                    catch(std::exception e) {
+                        log_error("exception occurs...");
+                    }
                     receivedData.clear();
                 }
             }
@@ -459,6 +464,15 @@ namespace net { namespace websocket {
     void    connector::sendHttpRequest(std::shared_ptr<std::string>& message) {
         send(message);
     }
+    
+    void    connector::ping(std::shared_ptr<std::string>& message) {
+        std::shared_ptr<session_t> pssn = std::dynamic_pointer_cast<session_t>(get()->getPatch(0));
+        session_t& ssn = *pssn.get();
+        std::shared_ptr<std::string> packet(new std::string);
+        buildFrame(header_t::PING, ssn.usingMask, *message.get(), packet);
+        get()->send(packet);
+    }
+
 
 };};
 
