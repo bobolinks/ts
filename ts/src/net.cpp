@@ -140,6 +140,14 @@ namespace net {
             return found;
         }
         
+        void uniform(net::proto_t p) {
+            char tmpBuf[64];
+            this->family = (net::family_t)vx.sa_family;
+            this->port = htons(vx.sa_family == AF_INET ? v4.sin_port : v6.sin6_port);
+            this->proto = p;
+            this->addr = inet_ntop(vx.sa_family, vx.sa_family == AF_INET ? ((void*)&v4.sin_addr) : ((void*)&v6.sin6_addr), tmpBuf, sizeof(tmpBuf));
+        }
+        
         bool standardize(void) {
             if (!family) {
                 log_error("family has not been specified!");
@@ -252,7 +260,7 @@ namespace net {
         delete _cxt;
     }
     
-    bool    server::bind(const address_t& local) {
+    bool    server::bind(const address_t& local, bool portReuse) {
         if (verify() == false) {
             log_error("failed to verify before calling %s!", __FUNCTION__);
             return false;
@@ -300,6 +308,11 @@ namespace net {
         
         set = 1;
         setsockopt(_cxt->_sock, SOL_SOCKET, SO_REUSEADDR, (void *)&set, sizeof(int));
+        
+        if (portReuse) {
+            set = 1;
+            setsockopt(_cxt->_sock, SOL_SOCKET, SO_REUSEPORT, (void *)&set, sizeof(int));
+        }
 
         if (::bind(_cxt->_sock, &_cxt->_local.vx, _cxt->_local.vx.sa_len) != 0) {
             log_error("failed to bind to %s, err=%s", _cxt->_local.toString().c_str(), strerror(errno));
@@ -444,7 +457,7 @@ namespace net {
                 return;
             }
         }
-        else {
+        else if (_cxt->_local.proto == net::TCP) {
             mapConnection::iterator it = _cxt->_connections.find(fd);
             if (it == _cxt->_connections.end()) {
                 log_error("connection[%d] not found!", fd);
@@ -454,35 +467,33 @@ namespace net {
 
             std::shared_ptr<std::string> packet = onPacketAlloc(size);
             packet->resize(size);
-            if (_cxt->_local.proto == net::TCP) {
-                size_t sz = it->second->recv(packet, size);
-                if (sz > 0) {
-                    if (size != sz) packet->resize(sz);
-                    onConnectionRecv(std::dynamic_pointer_cast<net::connection>(it->second), it->second->__peer, packet);
-                }
-                else {
-                    log_warning("connection[%d] error!", fd);
-                    ::close(fd);
-                    std::shared_ptr<connection> cnn = std::dynamic_pointer_cast<net::connection>(it->second);
-                    _cxt->_connections.erase(it);
-                    onConnectionClose(cnn);
-                }
+            size_t sz = it->second->recv(packet, size);
+            if (sz > 0) {
+                if (size != sz) packet->resize(sz);
+                onConnectionRecv(std::dynamic_pointer_cast<net::connection>(it->second), it->second->__peer, packet);
             }
             else {
-                address_impl_t from;
-                socklen_t len = sizeof(from);
-                ssize_t sz = ::recvfrom(fd, const_cast<char*>(packet->c_str()), size, 0, &from.vx, &len);
-                if (sz > 0) {
-                    if (size != sz) packet->resize(sz);
-                    onConnectionRecv(std::dynamic_pointer_cast<net::connection>(it->second), it->second->__peer, packet);
-                }
-                else {
-                    log_warning("connection[%d] error!", fd);
-                    ::close(fd);
-                    std::shared_ptr<connection> cnn = std::dynamic_pointer_cast<net::connection>(it->second);
-                    _cxt->_connections.erase(it);
-                    onConnectionClose(cnn);
-                }
+                log_warning("connection[%d] error!", fd);
+                ::close(fd);
+                std::shared_ptr<connection> cnn = std::dynamic_pointer_cast<net::connection>(it->second);
+                _cxt->_connections.erase(it);
+                onConnectionClose(cnn);
+            }
+        }
+        else {
+            std::shared_ptr<std::string> packet = onPacketAlloc(size);
+            packet->resize(size);
+            address_impl_t from;
+            socklen_t len = sizeof(from);
+            ssize_t sz = ::recvfrom(fd, const_cast<char*>(packet->c_str()), size, 0, &from.vx, &len);
+            if (sz > 0) {
+                if (size != sz) packet->resize(sz);
+                from.uniform(_cxt->_local.proto);
+                onConnectionRecv(std::shared_ptr<connection>(), from, packet);
+            }
+            else {
+                log_warning("connection[%d] error!", fd);
+                ::close(fd);
             }
         }
     }
@@ -508,6 +519,7 @@ namespace net {
     //______________________________________________________________________
 
     struct connector_cxt {
+        int             _sock_last;
         int             _sock;
         address_impl_t  _peer;
         bool            _connected;
@@ -516,6 +528,7 @@ namespace net {
     
     connector::connector(runnable const& host) : parasite(host) {
         _cxt = new connector_cxt();
+        _cxt->_sock_last = net::invalid_sock;
         _cxt->_sock = net::invalid_sock;
         _cxt->_connected = false;
         _cxt->_connection = std::shared_ptr<connection_t>(new connection_t(&this->_host));
@@ -556,11 +569,24 @@ namespace net {
             return false;
         }
         
-        _cxt->_sock = ::socket(_cxt->_peer.family, SOCK_STREAM, IPPROTO_TCP);
-        if (_cxt->_sock == net::invalid_sock) {
+        int sock = ::socket(_cxt->_peer.family, SOCK_STREAM, IPPROTO_TCP);
+        if (sock == net::invalid_sock) {
             log_error("failed to create socket!err=%s", strerror(errno));
             return false;
         }
+        else if (sock == _cxt->_sock_last) { //try again
+            _cxt->_sock = ::socket(_cxt->_peer.family, SOCK_STREAM, IPPROTO_TCP);
+            ::close(sock);
+            if (_cxt->_sock == net::invalid_sock) {
+                log_error("failed to create socket!err=%s", strerror(errno));
+                return false;
+            }
+        }
+        else {
+            _cxt->_sock = sock;
+        }
+        
+        _cxt->_sock_last = _cxt->_sock;
         
 #ifdef __APPLE__
         int set = 1;
@@ -733,6 +759,7 @@ namespace net {
                 log_warning("connection[%d] error!", fd);
                 ::close(fd);
                 _cxt->_connected = false;
+                _cxt->_sock = invalid_sock;
                 std::shared_ptr<connection> cnn = std::dynamic_pointer_cast<net::connection>(_cxt->_connection);
                 onConnectionClose(cnn);
             }
@@ -747,6 +774,7 @@ namespace net {
 
         log_warning("connection[%d] closed!", fd);
         _cxt->_connected = false;
+        _cxt->_sock = invalid_sock;
         std::shared_ptr<connection> cnn = std::dynamic_pointer_cast<net::connection>(_cxt->_connection);
         onConnectionClose(cnn);
     }

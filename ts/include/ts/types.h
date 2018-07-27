@@ -84,6 +84,8 @@ namespace types {
     //tool functions
     inline void order_number_copy(uint8_t* des, const uint8_t* src, int len) {
 #if defined(__LITTLE_ENDIAN__)
+        memcpy(des, src, len);
+#elif defined(__BIG_ENDIAN__)
         src += len;
         while (len-- > 0) {
             *des++ = *(--src);

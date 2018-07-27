@@ -266,7 +266,10 @@ namespace net { namespace websocket {
         if (net::connector::connect(target, timeout, isSSL ? false : true) == false) { //as blocking mode
             return false;
         }
-        
+
+        ssn.reset();
+        ssn.handshook = false;
+
 #if defined(USE_OPENSSL)
         ssl_io* io = nullptr;
         if ((io = (ssl_io*)pconn->getStreamer().get()) != nullptr) { //is ssl

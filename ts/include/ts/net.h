@@ -121,7 +121,7 @@ namespace net {
         explicit server(runnable const& host, uint16_t concurrent = 128);
         ~server(void);
         
-        bool    bind(const address_t& local);
+        bool    bind(const address_t& local, bool portReuse = false);
         bool    close(void);
         int     id(void) const;
         
