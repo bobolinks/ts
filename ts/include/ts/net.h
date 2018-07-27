@@ -123,6 +123,7 @@ namespace net {
         
         bool    bind(const address_t& local);
         bool    close(void);
+        int     id(void) const;
         
         //return true if successfully, TCP aways return false
         bool    sendto(const address_t& to, const uint8_t* data, uint32_t len);

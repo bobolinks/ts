@@ -358,6 +358,10 @@ namespace net {
         return true;
     }
 
+    int     server::id(void) const {
+        return _cxt->_sock;
+    }
+
     //return true if successfully, TCP aways return false
     bool    server::sendto(const address_t& to, const uint8_t* data, uint32_t len) {
         if (verify() == false) {
@@ -379,6 +383,10 @@ namespace net {
         return ::sendto(_cxt->_sock, data, len, 0,  &tar.vx, tar.vx.sa_len) == len;
     }
     
+    const address_t&    server::local(void) const {
+        return _cxt->_local;
+    }
+
     void    server::onWritable(int fd) {
         if (fd == _cxt->_sock || _cxt->_local.proto == net::UDP) {
             log_error("unexcepted event received on connection[%d]!", fd);

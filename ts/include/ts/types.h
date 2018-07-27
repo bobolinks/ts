@@ -242,7 +242,6 @@ namespace types {
         static void write(const T& v, types::stream& out) {
             size_t szleading = sizeof(TL);
             size_t szold = out.size();
-            size_t lnleading = v.size();
             if (szleading) {
                 size_t sznew = szleading + szold;
                 out.resize(sznew);
@@ -302,7 +301,7 @@ namespace types {
             }
             return *this;
         }
-        stream& operator >> (stream& out) {
+        stream& operator >> (stream& out) const {
             for(int i = 0; i < message::size; i++) {
                 (*writer(i))(reinterpret_cast<void*>(((unsigned long)&__vars_) + message::offset(i)), out);
             }
@@ -312,6 +311,10 @@ namespace types {
         typename T::type& get(void) {
             constexpr static const int index = type_find<typename T::type, _TuVars, sizeof...(Spans) - 1>::index;
             return std::get<index>(__vars_);
+        }
+        template <size_t _Jp>
+        typename std::tuple_element<_Jp, _TuVars>::type& get(void) {
+            return std::get<_Jp>(__vars_);
         }
     };
 };
