@@ -29,8 +29,6 @@
 
 _TS_NAMESPACE_BEGIN
 
-#define __attr_threading(...)
-
 struct life {
     life(void) : _this(this) {}
     virtual ~life(void) {}

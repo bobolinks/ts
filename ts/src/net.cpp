@@ -400,6 +400,14 @@ namespace net {
         return _cxt->_local;
     }
 
+    std::shared_ptr<connection> server::getConnection(int fd) {
+        mapConnection::iterator it = _cxt->_connections.find(fd);
+        if (it == _cxt->_connections.end()) {
+            return std::shared_ptr<connection>();
+        }
+        return it->second;
+    }
+
     void    server::onWritable(int fd) {
         if (fd == _cxt->_sock || _cxt->_local.proto == net::UDP) {
             log_error("unexcepted event received on connection[%d]!", fd);

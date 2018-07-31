@@ -98,12 +98,12 @@ namespace types {
     struct leading_copy {
         static size_t read(const uint8_t* src) {
             T v = 0;
-            order_number_copy(&v, src, sizeof(T));
+            order_number_copy((uint8_t*)&v, src, sizeof(T));
             return (size_t)v;
         }
         static void write(uint8_t* des, size_t sz) {
             T v = sz;
-            return order_number_copy(des, &v, sizeof(T));
+            return order_number_copy(des, (const uint8_t*)&v, sizeof(T));
         }
     };
     template <> struct leading_copy <leading_void> {
@@ -314,8 +314,18 @@ namespace types {
             constexpr static const int index = type_find<typename T::type, _TuVars, sizeof...(Spans) - 1>::index;
             return std::get<index>(__vars_);
         }
+        template <typename T>
+        const typename T::type& get(void) const {
+            constexpr static const int index = type_find<typename T::type, _TuVars, sizeof...(Spans) - 1>::index;
+            return std::get<index>(__vars_);
+        }
+        
         template <size_t _Jp>
         typename std::tuple_element<_Jp, _TuVars>::type& get(void) {
+            return std::get<_Jp>(__vars_);
+        }
+        template <size_t _Jp>
+        const typename std::tuple_element<_Jp, _TuVars>::type& get(void) const {
             return std::get<_Jp>(__vars_);
         }
     };

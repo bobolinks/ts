@@ -85,6 +85,8 @@ inline const char* errstr(int e) {
 }
 #endif
 
+#define __attr_threading(...)
+
 _TS_NAMESPACE_END
 
 #endif /*_TSS_INC_*/

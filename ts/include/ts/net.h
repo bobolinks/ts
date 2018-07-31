@@ -123,12 +123,14 @@ namespace net {
         
         bool    bind(const address_t& local, bool portReuse = false);
         bool    close(void);
-        int     id(void) const;
+        int     id(void) const __attr_threading("unsafe");
         
         //return true if successfully, TCP aways return false
         bool    sendto(const address_t& to, const uint8_t* data, uint32_t len);
         
-        const address_t&    local(void) const;
+        const address_t&    local(void) const __attr_threading("unsafe");
+        
+        std::shared_ptr<connection> getConnection(int fd) __attr_threading("unsafe");
         
     private:
         //runnable::listener
@@ -160,9 +162,9 @@ namespace net {
 
         int     send(std::shared_ptr<std::string>& packet);
         
-        std::shared_ptr<connection> get(void);
+        std::shared_ptr<connection> get(void) __attr_threading("unsafe");
         
-        bool    nonblock(bool enable);
+        bool    nonblock(bool enable) __attr_threading("unsafe");
 
     private:
         //runnable::listener
