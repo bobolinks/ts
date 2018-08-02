@@ -32,6 +32,9 @@ namespace string {
     std::string  format(const char *fmt, ...);
     std::string& format(std::string&s, const char *fmt, ...);
     std::string& toupper(std::string&s);
+    
+    std::string  tostr(const uint8_t* ptr, int len);
+    std::string  dump(const uint8_t* p, int len);
 };
 
 _TS_NAMESPACE_END

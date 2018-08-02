@@ -157,8 +157,8 @@ namespace types {
                 if(sl.size < (sl.pos + lnleading)) { throw std::out_of_range(""); }
                 v.assign((const char*)(sl.ptr + sl.pos), lnleading);
                 sl.pos += lnleading;
-                if (!szleading && sl.size > sl.pos) {sl.pos++;} //skip a \0
             }
+            if (!szleading && sl.size > sl.pos) {sl.pos++;} //skip a \0
         }
         static void write(const T& v, types::stream& out) {
             size_t szleading = sizeof(TL);
@@ -171,7 +171,7 @@ namespace types {
                 types::leading_copy<TL>::write(po, lnleading);
                 po += szleading;
             }
-            if (lnleading) memcpy(po + szleading, v.c_str(), lnleading);
+            if (lnleading) memcpy(po, v.c_str(), lnleading);
             if (!szleading) { //append a \0
                 out.push_back(0);
             }
@@ -311,12 +311,12 @@ namespace types {
         }
         template <typename T>
         typename T::type& get(void) {
-            constexpr static const int index = type_find<typename T::type, _TuVars, sizeof...(Spans) - 1>::index;
+            constexpr static const int index = type_find<T, _TuSpans, sizeof...(Spans) - 1>::index;
             return std::get<index>(__vars_);
         }
         template <typename T>
         const typename T::type& get(void) const {
-            constexpr static const int index = type_find<typename T::type, _TuVars, sizeof...(Spans) - 1>::index;
+            constexpr static const int index = type_find<T, _TuSpans, sizeof...(Spans) - 1>::index;
             return std::get<index>(__vars_);
         }
         

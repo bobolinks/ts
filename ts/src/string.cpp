@@ -125,6 +125,104 @@ namespace string {
         return s;
     }
 
+    /*to string*/
+    std::string tostr(const uint8_t* ptr, int len) {
+        std::string s;
+        int left = len;
+        const uint8_t* p = ptr;
+        while (left) {
+            if (left >= 16) {
+                char text[33];
+                sprintf(text, "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X",
+                        p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7],p[8],p[9],p[10],p[11],p[12],p[13],p[14],p[15]
+                        );
+                text[32] = 0;
+                s += text;
+                p += 16;
+                left -= 16;
+            }
+            else if(left >= 8) {
+                char text[17];
+                sprintf(text, "%02X%02X%02X%02X%02X%02X%02X%02X",
+                        p[0],p[1],p[2],p[3],p[4],p[5],p[6],p[7]
+                        );
+                text[16] = 0;
+                s += text;
+                p += 8;
+                left -= 8;
+            }
+            else if(left >= 4) {
+                char text[9];
+                sprintf(text, "%02X%02X%02X%02X",
+                        p[0],p[1],p[2],p[3]
+                        );
+                text[8] = 0;
+                s += text;
+                p += 4;
+                left -= 4;
+            }
+            else if(left >= 2) {
+                char text[5];
+                sprintf(text, "%02X%02X",
+                        p[0],p[1]
+                        );
+                text[4] = 0;
+                s += text;
+                p += 2;
+                left -= 2;
+            }
+            else {
+                char text[3];
+                sprintf(text, "%02X",
+                        p[0]
+                        );
+                text[2] = 0;
+                s += text;
+                p += 1;
+                left -= 1;
+            }
+        }
+        return s;
+    }
+    
+    std::string dump(const uint8_t* p, int len) {
+        std::string s;
+        char    line[128];
+        
+        int lines = 0;
+        for(int i = 0; i < len; i+=16,lines++) {
+            int batc = ((len - i) > 16) ? 16 : (len - i);
+            snprintf(line, sizeof(line) - 1, "\t%04X: ", i);
+            int pos = 7, j = 0;
+            for(j = 0; j < batc; j++) {
+                if(j == 8) {
+                    strncpy(&line[pos], "| ", sizeof(line) - pos - 1);
+                    pos += 2;
+                }
+                snprintf(&line[pos], sizeof(line) - pos - 1, "%02X ", (unsigned char)p[i + j]);
+                pos += 3;
+            }
+            for(; j < 16; j++) {
+                if(j == 8) {
+                    strncpy(&line[pos], "| ", sizeof(line) - pos - 1);
+                    pos += 2;
+                }
+                strncpy(&line[pos], "   ", sizeof(line) - pos - 1);
+                pos += 3;
+            }
+            line[pos++] = ' ';
+            char* dot = &line[pos];
+            memcpy(&line[pos], &p[i], batc); pos += batc;
+            for(int k = 0; k < batc; k++) {
+                if(*dot <= 0 || !isprint(*dot)) *dot = '.';
+                dot++;
+            }
+            line[pos++] = '\n';
+            line[pos] = 0;
+            s += line;
+        }
+        return s;
+    }
 };
 
 

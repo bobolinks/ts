@@ -84,6 +84,7 @@ namespace net {
         //return _size_queuing, return -1 if an error occurs
         virtual const int   send(std::shared_ptr<std::string>& packet);
         void                close(void);
+        int                 queuingSize(void) const {return _size_queuing;}
         
         const address_t&    local(void) const {return _local;}
         const address_t&    peer(void) const {return _local;}

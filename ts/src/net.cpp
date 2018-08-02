@@ -476,7 +476,7 @@ namespace net {
             std::shared_ptr<std::string> packet = onPacketAlloc(size);
             packet->resize(size);
             size_t sz = it->second->recv(packet, size);
-            if (sz > 0) {
+            if (sz > 0 && sz <= size) {
                 if (size != sz) packet->resize(sz);
                 onConnectionRecv(std::dynamic_pointer_cast<net::connection>(it->second), it->second->__peer, packet);
             }
@@ -527,7 +527,6 @@ namespace net {
     //______________________________________________________________________
 
     struct connector_cxt {
-        int             _sock_last;
         int             _sock;
         address_impl_t  _peer;
         bool            _connected;
@@ -536,7 +535,6 @@ namespace net {
     
     connector::connector(runnable const& host) : parasite(host) {
         _cxt = new connector_cxt();
-        _cxt->_sock_last = net::invalid_sock;
         _cxt->_sock = net::invalid_sock;
         _cxt->_connected = false;
         _cxt->_connection = std::shared_ptr<connection_t>(new connection_t(&this->_host));
@@ -582,19 +580,9 @@ namespace net {
             log_error("failed to create socket!err=%s", strerror(errno));
             return false;
         }
-        else if (sock == _cxt->_sock_last) { //try again
-            _cxt->_sock = ::socket(_cxt->_peer.family, SOCK_STREAM, IPPROTO_TCP);
-            ::close(sock);
-            if (_cxt->_sock == net::invalid_sock) {
-                log_error("failed to create socket!err=%s", strerror(errno));
-                return false;
-            }
-        }
         else {
             _cxt->_sock = sock;
         }
-        
-        _cxt->_sock_last = _cxt->_sock;
         
 #ifdef __APPLE__
         int set = 1;
