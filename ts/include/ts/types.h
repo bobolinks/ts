@@ -38,6 +38,24 @@ namespace types {
         int pos;
     };
     
+    //from libc++11
+    // indices
+    template<std::size_t... _Indexes>
+    struct __index_t {
+        typedef __index_t<_Indexes..., sizeof...(_Indexes)> __next;
+    };
+    
+    // Builds an indices<0, 1, 2, ..., _Num-1>.
+    template<std::size_t _Num>
+    struct make_indices {
+        typedef typename make_indices<_Num - 1>::__type::__next __type;
+    };
+    
+    template<>
+    struct make_indices<0> {
+        typedef __index_t<> __type;
+    };
+    
     //type functions
     template <typename T, typename TU, int I>
     struct type_find {
@@ -274,7 +292,7 @@ namespace types {
     public:
         typedef std::tuple<typename std::decay<Spans>::type...> _TuSpans;
         typedef std::tuple<typename std::decay<Spans>::type::type...> _TuVars;
-        typedef typename std::__make_tuple_indices<sizeof...(Spans)>::type __indices;
+        typedef typename make_indices<sizeof...(Spans)>::type __indices;
         constexpr static const int size = sizeof...(Spans);
     protected:
         static function_read_t reader(int i) {
@@ -286,7 +304,7 @@ namespace types {
             return __writer_fns_[i];
         }
         template<size_t ..._Indx>
-        static const void* offset(int i, std::__tuple_indices<_Indx...>) {
+        static const void* offset(int i, __index_t<_Indx...>) {
             static const void* __offsets_[size] = {&std::get<_Indx>(*(_TuVars*)nullptr)...};
             return __offsets_[i];
         }

@@ -26,6 +26,7 @@
 #include <functional>
 #include <thread>
 #include <ts/tss.h>
+#include <ts/types.h>
 
 _TS_NAMESPACE_BEGIN
 
@@ -128,8 +129,8 @@ protected:
 
 //asyn model
 template<typename O, typename F, typename Tuple, size_t ...S >
-void apply_tuple_impl(O p, F&& fn, Tuple&& t, std::__tuple_indices<S...>) {
-    return (p->*fn)(std::get<S>(std::forward<Tuple>(t))...);
+void apply_tuple_impl(O p, F&& fn, Tuple&& t, types::__index_t<S...>) {
+    return (p->*fn)(std::get<S>(t)...);
 }
 
 template <class T, typename... Args>
@@ -140,7 +141,7 @@ protected:
     typedef void (T::*_Fp)(Args...);
     typedef typename std::decay<_Fp>::type _Fd;
     typedef std::tuple<typename std::decay<Args>::type...> _Td;
-    typedef typename std::__make_tuple_indices<sizeof...(Args)>::type __indices;
+    typedef typename types::make_indices<sizeof...(Args)>::__type __indices;
 private:
     _Od __o_;
     _Cp __p_;
