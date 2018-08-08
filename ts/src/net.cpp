@@ -45,6 +45,10 @@ namespace net {
             *(address_t*)this = a;
         }
         
+        int sa_len(void) const {
+            return vx.sa_family == AF_INET ? sizeof(sockaddr_in) : (vx.sa_family == AF_INET6 ? sizeof(sockaddr_in6) : 0 );
+        }
+        
         bool localize(net::family_t fa = net::FAMILY_UNKNOWN) {
             address_impl_t& out = *this;
             struct ifconf conf;
@@ -60,6 +64,7 @@ namespace net {
             conf.ifc_buf = buff;
             
             int familys[2] = {AF_INET,  AF_INET6};
+            int sa_lens[2] = {sizeof(sockaddr_in), sizeof(sockaddr_in6)};
             
             for (int i = 0; found == false && i < 2; i++) {
                 if (fa != net::FAMILY_UNKNOWN && familys[i] != fa) continue;
@@ -98,7 +103,7 @@ namespace net {
                     }
                     
                     found = true;
-                    memcpy(&out.vx, &ifr->ifr_addr, ifr->ifr_addr.sa_len);
+                    memcpy(&out.vx, &ifr->ifr_addr, sa_lens[i]);
                 }
                 
                 close(s);
@@ -119,7 +124,7 @@ namespace net {
                             if ( ! ((currentifap->ifa_flags & IFF_UP) == 0 || (currentifap->ifa_flags & IFF_LOOPBACK)) ) {
                                 if (strstr("lo;vmnet;vnic;usb", currentifap->ifa_name)) {
                                     found = true;
-                                    memcpy(&out.vx, &currentifap->ifa_addr, currentifap->ifa_addr->sa_len);
+                                    memcpy(&out.vx, &currentifap->ifa_addr, currentifap->ifa_addr->sa_family == AF_INET ? sizeof(sockaddr_in) : sizeof(sockaddr_in6));
                                     break;
                                 }
                             }
@@ -158,7 +163,9 @@ namespace net {
                 log_error("proto has not been specified!");
                 return false;
             }
+#if defined(_OS_MAC_)
             this->vx.sa_len = family == net::V6 ? sizeof(this->v6) : sizeof(this->v4);
+#endif
             if (family == net::V4) {
                 this->v4.sin_port = htons(this->port);
                 inet_pton(AF_INET, addr.c_str(), &this->v4.sin_addr);
@@ -292,8 +299,8 @@ namespace net {
             return false;
         }
         
-#ifdef __APPLE__
         int set = 1;
+#ifdef __APPLE__
         setsockopt(_cxt->_sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
 #endif
         
@@ -314,7 +321,7 @@ namespace net {
             setsockopt(_cxt->_sock, SOL_SOCKET, SO_REUSEPORT, (void *)&set, sizeof(int));
         }
 
-        if (::bind(_cxt->_sock, &_cxt->_local.vx, _cxt->_local.vx.sa_len) != 0) {
+        if (::bind(_cxt->_sock, &_cxt->_local.vx, _cxt->_local.sa_len()) != 0) {
             log_error("failed to bind to %s, err=%s", _cxt->_local.toString().c_str(), strerror(errno));
             ::close(_cxt->_sock);
             _cxt->_sock = net::invalid_sock;
@@ -393,7 +400,7 @@ namespace net {
             return false;
         }
 
-        return ::sendto(_cxt->_sock, data, len, 0,  &tar.vx, tar.vx.sa_len) == len;
+        return ::sendto(_cxt->_sock, data, len, 0,  &tar.vx, tar.sa_len()) == len;
     }
     
     const address_t&    server::local(void) const {
@@ -613,7 +620,7 @@ namespace net {
 
         log_notice("connecting to %s:%d! fd=%d", _cxt->_peer.toString().c_str(), _cxt->_peer.port, _cxt->_sock);
 
-        if (::connect(_cxt->_sock, &_cxt->_peer.vx, _cxt->_peer.vx.sa_len) != 0) {
+        if (::connect(_cxt->_sock, &_cxt->_peer.vx, _cxt->_peer.sa_len()) != 0) {
             int er = errno;
             if (er != EINPROGRESS) {
                 log_error("failed to connect to %s, err=%d:%s", _cxt->_peer.toString().c_str(), er, strerror(er));

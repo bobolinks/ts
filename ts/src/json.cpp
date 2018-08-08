@@ -1,3 +1,4 @@
+#include <memory>
 #include <ts/json.h>
 #include <ts/log.h>
 
