@@ -56,6 +56,21 @@ namespace types {
         typedef __index_t<> __type;
     };
     
+    //from type_traits(libc++11)
+    template <size_t _I0, size_t ..._In>
+    struct static_max;
+    
+    template <size_t _I0>
+    struct static_max<_I0> {
+        static const size_t value = _I0;
+    };
+    
+    template <size_t _I0, size_t _I1, size_t ..._In>
+    struct static_max<_I0, _I1, _In...> {
+        static const size_t value = _I0 >= _I1 ? static_max<_I0, _In...>::value :
+        static_max<_I1, _In...>::value;
+    };
+    
     //type functions
     template <typename T, typename TU, int I>
     struct type_find {

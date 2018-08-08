@@ -25,7 +25,6 @@
 #include <tuple>
 #include <functional>
 #include <thread>
-#include <ts/tss.h>
 #include <ts/types.h>
 
 _TS_NAMESPACE_BEGIN

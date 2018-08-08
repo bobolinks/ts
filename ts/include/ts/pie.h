@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <ts/tss.h>
+#include <ts/types.h>
 
 _TS_NAMESPACE_BEGIN
 
@@ -85,8 +85,8 @@ struct pie final {
 
     template <typename... Args>
     struct ___data_t {
-        static constexpr int __size = std::__static_max<sizeof(Args)...>::value;
-        static constexpr int __align= std::__static_max<alignof(Args)...>::value;
+        static constexpr int __size = types::static_max<sizeof(Args)...>::value;
+        static constexpr int __align= types::static_max<alignof(Args)...>::value;
         using type = typename std::aligned_storage<__size, __align>::type;
         typedef std::tuple<typename std::decay<Args>::type...> _Td;
         typedef ___pie_helper<Args...> helper_t;
