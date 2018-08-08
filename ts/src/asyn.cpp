@@ -8,6 +8,7 @@
 #include <chrono>
 #include <list>
 #include <map>
+#include <algorithm>
 #include <ts/asyn.h>
 #include <ts/json.h>
 #include <ts/log.h>

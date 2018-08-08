@@ -591,8 +591,9 @@ namespace net {
             _cxt->_sock = sock;
         }
         
-#ifdef __APPLE__
         int set = 1;
+
+#ifdef __APPLE__
         setsockopt(_cxt->_sock, SOL_SOCKET, SO_NOSIGPIPE, (void *)&set, sizeof(int));
 #endif
         
