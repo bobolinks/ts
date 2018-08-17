@@ -54,6 +54,7 @@ namespace json {
                         ptr++;
                     }
                     if (ptr > comment && *(ptr - 1) == '*') {
+                        ptr++;
                         break;
                     }
                 }
