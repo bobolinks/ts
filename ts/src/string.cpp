@@ -1,3 +1,4 @@
+#include <memory>
 #include <ts/string.h>
 #include <ts/log.h>
 
@@ -72,7 +73,7 @@ namespace string {
     
     std::string format(const char *fmt, ...) {
         int old_size = (int)strlen(fmt);
-        std::unique_ptr<char[]> buf(new char[old_size]);
+        std::shared_ptr<char> buf(new char[old_size]);
         va_list ap;
         
         va_start(ap, fmt);

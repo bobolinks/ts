@@ -8,6 +8,7 @@
 #include <chrono>
 #include <list>
 #include <map>
+#include <algorithm>
 #include <ts/asyn.h>
 #include <ts/json.h>
 #include <ts/log.h>
@@ -763,7 +764,7 @@ void    runnable::wait(int64_t milliseconds) {
 }
 
 //background mode
-static struct  background : public ts::life {
+struct  background : public ts::life {
 private:
     std::mutex  _lock;
     std::list<std::shared_ptr<ts::runnable>> _threads;
@@ -814,11 +815,12 @@ public:
         c->invoke();
         push(ra);
     }
-} _bg;
+};
 
 void     runnable::background(std::shared_ptr<bind_base_t> ca) {
-    std::shared_ptr<ts::runnable> ra = _bg.pop();
-    runnable::push(ts::make_bind(&_bg, &background::run, ra, ca), 0, 1, ra.get());
+    static std::shared_ptr<struct background> s_bg(new struct background());
+    std::shared_ptr<ts::runnable> ra = s_bg->pop();
+    runnable::push(ts::make_bind(s_bg.get(), &background::run, ra, ca), 0, 1, ra.get());
 }
 
 //for explicitThreaded

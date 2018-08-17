@@ -23,6 +23,7 @@
 #include <typeinfo>
 #include <functional>
 #include <initializer_list>
+#include <ts/types.h>
 #include <ts/json.h>
 #include <net/http.h>
 
@@ -90,7 +91,7 @@ constexpr static const char*    _ds(){return desc_;}
     }
     
     template<typename O, typename F, typename _Td, typename _Ti, size_t ...S >
-    void apply_invoke(O p, F&& fn, const ts::pie& value, ts::pie& rs, _Td&& td, _Ti&& ti, std::__tuple_indices<S...>) {
+    void apply_invoke(O p, F&& fn, const ts::pie& value, ts::pie& rs, _Td&& td, _Ti&& ti, types::__index_t<S...>) {
         rs = (p->*fn)(__get<S>(value, td, std::forward<_Ti>(ti))...);
     }
     
@@ -118,7 +119,7 @@ constexpr static const char*    _ds(){return desc_;}
     
     inline void __eat(...) {}
     template<typename _Ti, size_t ...S >
-    void apply_document(ts::pie& value, _Ti&& ti, std::__tuple_indices<S...>) {
+    void apply_document(ts::pie& value, _Ti&& ti, types::__index_t<S...>) {
         __eat(__doc<S>(value, std::forward<_Ti>(ti))...);
     }
     
@@ -127,7 +128,7 @@ constexpr static const char*    _ds(){return desc_;}
     public:
         typedef std::tuple<typename std::decay<Args>::type...> _Ti;
         typedef std::tuple<typename std::decay<Args>::type::_T...> _Td;
-        typedef typename std::__make_tuple_indices<sizeof...(Args)>::type __indices;
+        typedef typename types::make_indices<sizeof...(Args)>::type __indices;
         typedef T* _Cp;
         typedef ts::pie (T::*_Fp)(typename Args::_T...);
     public:

@@ -45,7 +45,8 @@ namespace net { namespace jsrpc {
         try {
             if (strncasecmp(contentType.c_str(), "application/json", contentType.size()) == 0) {
                 ts::pie vars;
-                if (json::parse(vars, body->c_str())) {
+                std::string err;
+                if (json::parse(vars, body->c_str(), err)) {
                     ts::pie* _args = nullptr;
                     std::map<std::string, ts::pie>::const_iterator it = vars.find("args");
                     if (it == vars.map().end()) {
