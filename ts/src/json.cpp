@@ -166,7 +166,9 @@ namespace json {
             switch (*tk) {
                 case '{': { /*map*/
                     int rx = 0;
-                    value = std::map<std::string, ts::pie>{};
+                    if (value.isMap() == false) {
+                        value = std::map<std::string, ts::pie>{};
+                    }
                     if (parserMap(p, len - (int)(p - src), value.map(), rx, line, err) == false) {
                         /*error*/
                         return false;
@@ -182,7 +184,9 @@ namespace json {
                 case '[': { /*list*/
                     p++;
 
-                    value = std::vector<ts::pie>{};
+                    if (value.isArray() == false) {
+                        value = std::vector<ts::pie>{};
+                    }
 
                     scan_token(tk);
                     if (*tk == ']') { /*empty list*/
