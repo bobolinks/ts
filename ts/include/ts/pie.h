@@ -244,6 +244,30 @@ struct pie final {
         return isMap() && map().find(key) != map().end();
     }
 
+    bool each(std::function<bool(pie& parent, pie& item)> func){
+        if (isMap()) {
+            for (auto& it : map()) {
+                if (func(*this, it.second) == false) {
+                    return false;
+                }
+                if (it.second.each(func) == false) {
+                    return false;
+                }
+            }
+        }
+        else if (isArray()) {
+            for (auto& it : array()) {
+                if (func(*this, it) == false) {
+                    return false;
+                }
+                if (it.each(func) == false) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 private:
     data_t::type _data;
     std::type_index _type;

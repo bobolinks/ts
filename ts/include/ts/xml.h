@@ -16,27 +16,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ====================================================================
  */
-#if !defined(_TS_JSON_INC_)
-#define _TS_JSON_INC_
+#if !defined(_TS_XML_INC_)
+#define _TS_XML_INC_
 #pragma once
 
 #include <ts/pie.h>
 
 _TS_NAMESPACE_BEGIN
 
-namespace json {
+namespace xml {
     bool            parse(ts::pie& out, const char* src, std::string& err);
     std::string&    format(const ts::pie& js, std::string& out, bool quot = false, bool align = false);
-
+    
     bool            fromFile(ts::pie& out, const char* file, std::string& err);
     long            toFile(const ts::pie& js, const char* file, bool align = false);
-
-    //tool set, skip '\n','\r','\t',' ', line comment(//) and comment block(/**/)
-    bool            skip_unmeaning(std::string& err, const char*& ptr, int len, int& line);
-    void            skip_until_commit(std::string& err, const char*& ptr, int len, int& line, const std::pair<char, char>& parantheses);
-    bool            skip_parantheses(std::string& err, const char*& ptr, int len, int& line, const std::pair<char, char>& parantheses);
 };
 
 _TS_NAMESPACE_END
 
-#endif /*_TS_JSON_INC_*/
+#endif /*_TS_XML_INC_*/
+
