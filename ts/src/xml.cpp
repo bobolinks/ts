@@ -88,6 +88,25 @@ namespace xml {
             std::string sTag(tk, (int)(p - tk));
             
             if (sTag.length() == 0) {
+                //test is comment ?
+                if (strncmp(p, "!--", 3) == 0) {
+                    p += 3;
+                    while (p < e) {
+                        while (p < e && *p != '-') {
+                            if (*p == '\n') {
+                                line++;
+                            }
+                            p++;
+                        }
+                        if (p < e && *(p + 1) == '-' && *(p + 2) == '>') {
+                            p += 3;
+                            break;
+                        }
+                    }
+                    if (p < e) {
+                        continue;
+                    }
+                }
                 ts::string::format(err, "[%d] unexpected token nearby %16s...!", line, p - 2);
                 return false;
             }
@@ -131,7 +150,7 @@ namespace xml {
                 }
                 
                 if (*p != '=') { //value type property
-                    props[sID] = true;
+                    props[sID] = "";
                     continue;
                 }
                 
@@ -174,6 +193,10 @@ namespace xml {
                     p++;
                     break;
                 }
+            }
+            
+            if (strncasecmp(sTag.c_str(), "br", 2) == 0) {
+                continue;
             }
             
             //parser childs
@@ -231,15 +254,14 @@ namespace xml {
         return true;
     }
     
-    std::string&    format(const ts::pie& js, std::string& out, bool quot, int align, int indent) {
+    std::string&    format(const ts::pie& js, std::string& out, bool quot, int indent) {
         static const struct __spaces {
             char v[64] = {};
             __spaces(void) {
                 memset(v, ' ', sizeof(v));
             }
         } _spaces;
-        int indsize = align * indent;
-        if (indsize > 64) indsize = 64;
+        if (indent > 64) indent = 64;
         
         std::type_index idx = js.type();
         if (idx == typeid(int64_t)) {
@@ -253,72 +275,60 @@ namespace xml {
             out += zb;
         }
         else if (idx == typeid(std::string)) {
-            out += "\"";
+            if (quot) out += "\"";
             out += js.get<std::string>();
-            out += "\"";
+            if (quot) out += "\"";
         }
         else if (idx == typeid(std::vector<ts::pie>)) {
-            out += "[";
-            if (indsize) {
-                out += "\r\n";
-            }
             for (auto& it : js.array()) {
-                format(it, out, quot, align+1, indent);
-                out += ",";
-                if (indsize) {
-                    out += "\r\n";
-                }
+                format(it, out, quot, indent + 1);
             }
-            if (js.array().size()) {
-                out.replace(out.length() - (indsize ? 3 : 1), indsize ? 3 : 1, "");
-            }
-            if (indsize) {
-                out += "\r\n";
-            }
-            if (indsize) {
-                out += std::string(_spaces.v, indsize);
-            }
-            out += "]";
         }
         else if (idx == typeid(std::map<std::string, ts::pie>)) {
-            if (indsize) {
-                out += std::string(_spaces.v, indsize);
-                out += "{\r\n";
-            }
-            else {
-                out += "{";
-            }
-            for (auto& it : js.map()) {
-                if (indsize) {
-                    out += std::string(_spaces.v, indsize + indent);
-                }
-                if (quot)out += "\"";
-                out += it.first;
-                if (quot)out += "\"";
-                out += ":";
-                if (indsize) out += "\t";
-                format(it.second, out, quot, align+1, indent);
-                out += ",";
-                if (indsize) {
-                    out += "\r\n";
-                }
-            }
-            if (js.map().size()) {
-                out.replace(out.length() - (indsize ? 3 : 1), indsize ? 3 : 1, "");
-            }
-            if (indsize) {
+            if (out.size() && out.at(out.length() - 1) != '\n') {
                 out += "\r\n";
             }
-            if (indsize) {
-                out += std::string(_spaces.v, indsize);
+            out += std::string(_spaces.v, indent);
+            out += "<";
+            std::string sTag = "";
+            auto ittag = js.map().find("tag");
+            if (ittag != js.map().end()) {
+                sTag = ittag->second.get<std::string>();
+                out += sTag;
             }
-            out += "}";
+            for (auto& it : js.map()) {
+                if (it.first == "tag" || it.first == "childs" || it.second.isMap() || it.second.isArray()) {
+                    continue;
+                }
+                out += " ";
+                out += it.first;
+                if (it.second.isString() && it.second.get<std::string>().length() == 0) {
+                    continue;
+                }
+                out += "=";
+                format(it.second, out, true, 0);
+            }
+            auto itchilds = js.map().find("childs");
+            if (itchilds == js.map().end() || itchilds->second.array().size() == 0) {
+                out += "/>\r\n";
+                return out;
+            }
+            out += ">";
+            format(itchilds->second, out, quot, indent + 1);
+            if (out.at(out.length() - 1) == '\n') {
+                out += std::string(_spaces.v, indent);
+            }
+            out += "</";
+            if (ittag != js.map().end()) {
+                out += sTag;
+            }
+            out += ">\r\n";
         }
         return out;
     }
     
-    std::string&    format(const ts::pie& js, std::string& out, bool quot, bool align) {
-        return format(js, out, quot, (int)(align?1:0), (int)(align ? 2 : 0));
+    std::string&    format(const ts::pie& js, std::string& out) {
+        return format(js, out, false, 0);
     }
     
     bool            fromFile(ts::pie& out, const char* file, std::string& err) {
@@ -337,9 +347,9 @@ namespace xml {
         return parse(out, szb.get(), err);
     }
     
-    long            toFile(const ts::pie& js, const char* file, bool align) {
+    long            toFile(const ts::pie& js, const char* file) {
         std::string s;
-        format(js, s, false, align);
+        format(js, s);
         if (s.size()) {
             FILE* fp = fopen(file, "rb");
             if (fp == nullptr) {
