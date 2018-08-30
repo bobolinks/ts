@@ -139,9 +139,8 @@ struct pie final {
         return *this;
     }
     
-    template <class T, class = typename std::enable_if<data_t::contains<T>::value>::type>
+    template <class T, typename U = typename ___mapper_t<typename std::remove_reference<T>::type>::type, class = typename std::enable_if<data_t::contains<T>::value>::type>
     pie& operator = (T&& value) {
-        typedef typename std::remove_reference<T>::type U;
         helper_t::destroy(_type, &_data);
         new (&_data) U(value);
         _type = std::type_index(typeid(U));
