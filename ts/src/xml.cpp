@@ -38,6 +38,7 @@ namespace xml {
             return true;
         }
         else {
+            tk = p;
             bool has_hex = false;
             {
                 bool _h1 = false, _h2 = false; has_hex = 0; hasdot = 0; if (*p == '-' || *p == '+') {p++; } \
@@ -351,7 +352,7 @@ namespace xml {
         std::string s;
         format(js, s);
         if (s.size()) {
-            FILE* fp = fopen(file, "rb");
+            FILE* fp = fopen(file, "wb");
             if (fp == nullptr) {
                 log_warning("can't open file[%s]!", file);
             }

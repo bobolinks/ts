@@ -515,7 +515,7 @@ namespace json {
         std::string s;
         format(js, s, false, align);
         if (s.size()) {
-            FILE* fp = fopen(file, "rb");
+            FILE* fp = fopen(file, "wb");
             if (fp == nullptr) {
                 log_warning("can't open file[%s]!", file);
             }
