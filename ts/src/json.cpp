@@ -324,17 +324,32 @@ namespace json {
                 int sidlen = 0;
                 
                 scan_blank(sid); sidlen = 0;
-                while(p < e && !isblank(*p) && *p != ':'){p++; sidlen++;}
+                char endWith = *sid == '\"' ? '\"' : ':';
+                if (endWith == '\"') {
+                    p++;
+                    sidlen++;
+                }
+                while(p < e && !isblank(*p) && *p != endWith){p++; sidlen++;}
                 if (sidlen <= 0) {
                     /*error*/
                     err = "illegal id found!";
                     return false;
+                }
+                if (endWith == '\"') {
+                    p++;
+                    sidlen++;
                 }
                 
                 //remove "
                 if (*sid == '\"' && *(sid + sidlen - 1) == '\"') {
                     sid++;
                     sidlen -= 2;
+                }
+                
+                if (sidlen <= 0) {
+                    /*error*/
+                    ts::string::format("missing id: nearby %16s!", sid);
+                    return false;
                 }
                 
                 std::string sId(sid, sidlen);
