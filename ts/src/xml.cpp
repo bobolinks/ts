@@ -151,7 +151,7 @@ namespace xml {
                 }
                 
                 if (*p != '=') { //value type property
-                    props[sID] = "";
+                    props[sID] = true;
                     continue;
                 }
                 
