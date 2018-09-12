@@ -278,7 +278,10 @@ namespace json {
                             vallen = int (p - val);
                             value = std::string(val, vallen);
                             if (isJsFun) {
-                                value._flags |= pie_is_jsfunction;
+                                value._flags |= flags_is_jsfunction;
+                            }
+                            else if (strncmp(val, "true", vallen) == 0 || strncmp(val, "false", vallen) == 0) {
+                                value._flags |= flags_is_boolean;
                             }
                             readx = (int)(p - src);
                             return true;
@@ -430,11 +433,11 @@ namespace json {
             out += zb;
         }
         else if (idx == typeid(std::string)) {
-            if (!(js._flags & pie_is_jsfunction)) {
+            if (!(js._flags & (flags_is_jsfunction | flags_is_boolean))) {
                 out += "\"";
             }
             out += js.get<std::string>();
-            if (!(js._flags & pie_is_jsfunction)) {
+            if (!(js._flags & (flags_is_jsfunction | flags_is_boolean))) {
                 out += "\"";
             }
         }

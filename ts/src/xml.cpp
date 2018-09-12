@@ -315,7 +315,7 @@ namespace xml {
                 }
                 out += " ";
                 out += it.first;
-                if (it.second.isNumber() && it.second.get<int64_t>() == 1) {
+                if (it.second.isString() && (it.second._flags & json::flags_is_boolean) && it.second.get<std::string>() == "true") {
                     continue;
                 }
                 out += "=";

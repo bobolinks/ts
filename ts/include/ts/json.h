@@ -25,7 +25,8 @@
 _TS_NAMESPACE_BEGIN
 
 namespace json {
-    constexpr static int pie_is_jsfunction = 0x000100;
+    constexpr static int flags_is_boolean   = 0x000001;
+    constexpr static int flags_is_jsfunction= 0x000002;
 
     bool            parse(ts::pie& out, const char* src, std::string& err);
     std::string&    format(const ts::pie& js, std::string& out, bool quot = false, bool align = false);
