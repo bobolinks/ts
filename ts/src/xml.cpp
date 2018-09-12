@@ -31,7 +31,7 @@ namespace xml {
             }
             if (tk == p || *tk != *p) {
                 /*error*/
-                ts::string::format("illegal string : nearby %16s!", p - 2);
+                ts::string::format(err, "illegal string : nearby %16s!", p - 2);
                 return false;
             }
             p++;
@@ -45,9 +45,16 @@ namespace xml {
                 while(p < e && (isdigit(*p) || (_h1 = (*p == '.')) || (_h2 = ishexnumber(*p)))){p++; hasdot |= _h1; has_hex |= _h2; }
             }
             if (tk == p || (*p != ' ' && *p != '/' && *p != '>')) {
-                /*error*/
-                ts::string::format("illegal string : nearby %16s!", p - 2);
-                return false;
+                //deal as string
+                while (p < e && *p != ' ' && *p != '/' && *p != '>') {
+                    if (*p == '\n' && *(p-1) == '\\'){line++;}
+                    p++;
+                }
+                if (*p != ' ' && *p != '/' && *p != '>') {
+                    /*error*/
+                    ts::string::format(err, "illegal string : nearby %16s!", p - 2);
+                    return false;
+                }
             }
             return true;
         }
@@ -123,6 +130,7 @@ namespace xml {
                 if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line) || *p != '>') {
                     return false;
                 }
+                p++;
                 return true;
             }
             
@@ -138,7 +146,7 @@ namespace xml {
                 }
                 
                 tk = p;
-                while(p < e && (isalnum(*p) || *p == '-' || *p == ':' || *p == '@')){p++;}
+                while(p < e && (isalnum(*p) || *p == '$' || *p == '#' || *p == '-' || *p == ':' || *p == '@')){p++;}
 
                 if (p == tk) {
                     ts::string::format(err, "[%d] unexpected token nearby %16s...!", line, p - 2);
@@ -192,7 +200,7 @@ namespace xml {
                         return false;
                     }
                     p++;
-                    break;
+                    return true;
                 }
             }
             
@@ -218,14 +226,18 @@ namespace xml {
                     }
                     if (*p == '/') { //tag end
                         p++;
+                        if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line)) {
+                            return false;
+                        }
                         tk = p;
-                        static std::pair<char, char> term_chars_end {'>','>'};
-                        json::skip_until_commit(err, p, len - (int)(p - src), line, term_chars_end);
+                        while(p < e && (isalnum(*p) || *p == '-')){p++;}
                         std::string sTagEnd(tk, (int)(p - tk));
                         if (sTag != sTagEnd) {
                             ts::string::format(err, "unexpected tag name %s!", sTagEnd.c_str());
                             return false;
                         }
+                        static std::pair<char, char> term_chars_end {'>','>'};
+                        json::skip_until_commit(err, p, len - (int)(p - src), line, term_chars_end);
                         p++;
                         return true;
                     }
@@ -282,7 +294,7 @@ namespace xml {
         }
         else if (idx == typeid(std::vector<ts::pie>)) {
             for (auto& it : js.array()) {
-                format(it, out, quot, indent + 1);
+                format(it, out, quot, it.isMap() ? (indent + 1) : indent);
             }
         }
         else if (idx == typeid(std::map<std::string, ts::pie>)) {
@@ -303,7 +315,7 @@ namespace xml {
                 }
                 out += " ";
                 out += it.first;
-                if (it.second.isString() && it.second.get<std::string>().length() == 0) {
+                if (it.second.isNumber() && it.second.get<int64_t>() == 1) {
                     continue;
                 }
                 out += "=";
@@ -311,7 +323,7 @@ namespace xml {
             }
             auto itchilds = js.map().find("childs");
             if (itchilds == js.map().end() || itchilds->second.array().size() == 0) {
-                out += "/>\r\n";
+                out += "></" + sTag + ">\r\n";
                 return out;
             }
             out += ">";

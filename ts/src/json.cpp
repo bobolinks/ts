@@ -1,4 +1,4 @@
-#include <memory>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   #include <memory>
 #include <ts/json.h>
 #include <ts/string.h>
 #include <ts/log.h>
@@ -263,20 +263,23 @@ namespace json {
                                 scan_blank(tmp);
                             }
 
+                            bool isJsFun = false;
                             if (*p == '(') { //is js function
                                 if (skip_small_parantheses(err, p, len - (int)(p - src), line) == false) {
                                     return false;
                                 }
-                                p++;
                                 const char* p_fun_body = nullptr;
                                 scan_blank(p_fun_body);
                                 if (skip_big_parantheses(err, p, len - (int)(p - src), line) == false) {
                                     return false;
                                 }
-                                p++;
+                                isJsFun = true;
                             }
                             vallen = int (p - val);
                             value = std::string(val, vallen);
+                            if (isJsFun) {
+                                value._flags |= pie_is_jsfunction;
+                            }
                             readx = (int)(p - src);
                             return true;
                         }
@@ -427,26 +430,36 @@ namespace json {
             out += zb;
         }
         else if (idx == typeid(std::string)) {
-            out += "\"";
+            if (!(js._flags & pie_is_jsfunction)) {
+                out += "\"";
+            }
             out += js.get<std::string>();
-            out += "\"";
+            if (!(js._flags & pie_is_jsfunction)) {
+                out += "\"";
+            }
         }
         else if (idx == typeid(std::vector<ts::pie>)) {
             out += "[";
-            if (indsize) {
+            if (indent) {
                 out += "\r\n";
             }
+            int lstcnt = 0;
             for (auto& it : js.array()) {
+                if (it.isMap()) {
+                    out += std::string(_spaces.v, indsize + indent);
+                }
                 format(it, out, quot, align+1, indent);
                 out += ",";
-                if (indsize) {
+                if (indent && it.isMap()) {
                     out += "\r\n";
+                    lstcnt = 3;
                 }
+                else lstcnt = 1;
             }
-            if (js.array().size()) {
-                out.replace(out.length() - (indsize ? 3 : 1), indsize ? 3 : 1, "");
+            if (lstcnt) {
+                out.replace(out.length() - lstcnt, lstcnt, "");
             }
-            if (indsize) {
+            if (indent) {
                 out += "\r\n";
             }
             if (indsize) {
@@ -455,32 +468,31 @@ namespace json {
             out += "]";
         }
         else if (idx == typeid(std::map<std::string, ts::pie>)) {
-            if (indsize) {
-                out += std::string(_spaces.v, indsize);
+            if (indent) {
                 out += "{\r\n";
             }
             else {
                 out += "{";
             }
             for (auto& it : js.map()) {
-                if (indsize) {
+                if (indent) {
                     out += std::string(_spaces.v, indsize + indent);
                 }
                 if (quot)out += "\"";
                 out += it.first;
                 if (quot)out += "\"";
                 out += ":";
-                if (indsize) out += "\t";
+                if (indent) out += " ";
                 format(it.second, out, quot, align+1, indent);
                 out += ",";
-                if (indsize) {
+                if (indent) {
                     out += "\r\n";
                 }
             }
             if (js.map().size()) {
-                out.replace(out.length() - (indsize ? 3 : 1), indsize ? 3 : 1, "");
+                out.replace(out.length() - (indent ? 3 : 1), indent ? 3 : 1, "");
             }
-            if (indsize) {
+            if (indent) {
                 out += "\r\n";
             }
             if (indsize) {
@@ -492,7 +504,7 @@ namespace json {
     }
     
     std::string&    format(const ts::pie& js, std::string& out, bool quot, bool align) {
-        return format(js, out, quot, (int)(align?1:0), (int)(align ? 2 : 0));
+        return format(js, out, quot, 0, 2);
     }
     
     bool            fromFile(ts::pie& out, const char* file, std::string& err) {

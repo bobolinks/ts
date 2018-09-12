@@ -25,6 +25,7 @@
 #include <tuple>
 #include <string>
 #include <vector>
+#include <stack>
 #include <map>
 #include <ts/types.h>
 
@@ -106,29 +107,35 @@ struct pie final {
     
     explicit pie(pie&& old) : _type(old._type) {
         helper_t::move(old._type, &old._data, &_data);
+        _flags = old._flags;
     }
     
     explicit pie(pie const& old) : _type(old._type)  {
         helper_t::copy(old._type, &old._data, &_data);
+        _flags = old._flags;
     }
     
     template <class T, typename U = typename ___mapper_t<T>::type, class = typename std::enable_if<data_t::contains<T>::value>::type>
     pie(T&& value) : _type(typeid(U)) {
         new(&_data) U(std::forward<T>(value));
+        _flags = 0;
     }
     
     pie(int value) : _type(typeid(int64_t)) {
         new(&_data) int64_t(value);
+        _flags = 0;
     }
     
     pie(const char* value) : _type(typeid(std::string)) {
         new(&_data) std::string(value);
+        _flags = 0;
     }
 
     pie& operator = (pie&& old) {
         helper_t::destroy(_type, &_data);
         helper_t::move(old._type, &old._data, &_data);
         _type = old._type;
+        _flags = old._flags;
         return *this;
     }
     
@@ -136,6 +143,18 @@ struct pie final {
         helper_t::destroy(_type, &_data);
         helper_t::copy(old._type, &old._data, &_data);
         _type = old._type;
+        _flags = old._flags;
+        return *this;
+    }
+    
+    pie& move(pie& to) {
+        helper_t::destroy(to._type, &to._data);
+        to._type = _type;
+        memcpy(&to._data, &_data, sizeof(_data));
+        to._flags = _flags;
+        new(&_data) int64_t(0);
+        _type = std::type_index(typeid(int64_t));
+        _flags = 0;
         return *this;
     }
     
@@ -144,6 +163,7 @@ struct pie final {
         helper_t::destroy(_type, &_data);
         new (&_data) U(value);
         _type = std::type_index(typeid(U));
+        _flags = 0;
         return *this;
     }
     
@@ -151,6 +171,7 @@ struct pie final {
         helper_t::destroy(_type, &_data);
         new (&_data) int64_t(value);
         _type = std::type_index(typeid(int64_t));
+        _flags = 0;
         return *this;
     }
 
@@ -158,6 +179,7 @@ struct pie final {
         helper_t::destroy(_type, &_data);
         new (&_data) std::string(value);
         _type = std::type_index(typeid(std::string));
+        _flags = 0;
         return *this;
     }
 
@@ -243,30 +265,33 @@ struct pie final {
         return isMap() && map().find(key) != map().end();
     }
 
-    bool each(std::function<bool(pie& parent, pie& item)> func){
+    bool each(std::function<bool(pie& parent, const char* name, pie& item, int level)> func, int level = 0){
         if (isMap()) {
             for (auto& it : map()) {
-                if (func(*this, it.second) == false) {
+                if (func(*this, it.first.c_str(), it.second, level) == false) {
                     return false;
                 }
-                if (it.second.each(func) == false) {
+                if (it.second.each(func, level + 1) == false) {
                     return false;
                 }
             }
         }
         else if (isArray()) {
+            const char* name_base = nullptr;
             for (auto& it : array()) {
-                if (func(*this, it) == false) {
+                if (func(*this, name_base + 1, it, level) == false) {
                     return false;
                 }
-                if (it.each(func) == false) {
+                if (it.each(func, level + 1) == false) {
                     return false;
                 }
             }
         }
         return true;
     }
-
+public:
+    int _flags; /*custom flags*/
+    
 private:
     data_t::type _data;
     std::type_index _type;
