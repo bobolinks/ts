@@ -526,9 +526,9 @@ namespace json {
         return parse(out, szb.get(), err);
     }
     
-    long            toFile(const ts::pie& js, const char* file, bool align) {
+    long            toFile(const ts::pie& js, const char* file, bool quot, bool align) {
         std::string s;
-        format(js, s, false, align);
+        format(js, s, quot, align);
         if (s.size()) {
             FILE* fp = fopen(file, "wb");
             if (fp == nullptr) {

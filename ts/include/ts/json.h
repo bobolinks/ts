@@ -32,7 +32,7 @@ namespace json {
     std::string&    format(const ts::pie& js, std::string& out, bool quot = false, bool align = false);
 
     bool            fromFile(ts::pie& out, const char* file, std::string& err);
-    long            toFile(const ts::pie& js, const char* file, bool align = false);
+    long            toFile(const ts::pie& js, const char* file, bool quot = false, bool align = false);
 
     //tool set, skip '\n','\r','\t',' ', line comment(//) and comment block(/**/)
     bool            skip_unmeaning(std::string& err, const char*& ptr, int len, int& line);
