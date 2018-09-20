@@ -1,4 +1,4 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   #include <memory>
+#include <memory>
 #include <ts/json.h>
 #include <ts/string.h>
 #include <ts/log.h>
@@ -16,7 +16,7 @@ _TS_NAMESPACE_BEGIN
 #define issep(_c_)                  (_c_ == ',')
 
 #if defined(_MSC_VER) || defined(ANDROID) || defined(_OS_LINUX_)
-#define ishexnumber(_c_)            (_c_ == 'x' || (_c_ >= '0' && _c_ <= '9') || (_c_ >= 'a' && _c_ <= 'f')  || (_c_ >= 'A' && _c_ <= 'F') )
+# define ishexnumber(_c_)            (_c_ == 'x' || (_c_ >= '0' && _c_ <= '9') || (_c_ >= 'a' && _c_ <= 'f')  || (_c_ >= 'A' && _c_ <= 'F') )
 #endif
 
 #define scan_blank(_token_)         while(p < e && isblank(*p)){if (*p == '\n'){line++;} p++;} _token_ = p;

@@ -10,6 +10,9 @@ _TS_NAMESPACE_BEGIN
 
 namespace xml {
 #define isstring(_c_)               (_c_ == '\'' || _c_ == '\"')
+#if defined(_MSC_VER) || defined(ANDROID) || defined(_OS_LINUX_)
+# define ishexnumber(_c_)            (_c_ == 'x' || (_c_ >= '0' && _c_ <= '9') || (_c_ >= 'a' && _c_ <= 'f')  || (_c_ >= 'A' && _c_ <= 'F') )
+#endif
 
     bool skip_parantheses(std::string& err, const char*& ptr, int len, int& line) {
         static std::pair<char, char> setParantheses {'<','>'};
