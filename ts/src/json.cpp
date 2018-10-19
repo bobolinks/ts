@@ -256,9 +256,14 @@ namespace json {
                             const char* tmp = nullptr;
                             
                             while (p < e && *p != '('  && *p != ' ' && *p != ',' && *p != ']' && *p != '}') {
+                                if (*p == '\n') {
+                                    line++;
+                                    if (vallen == 0) {vallen = int (p - val);}
+                                }
                                 p++;
                             }
-                            
+                            if (vallen == 0) {vallen = int (p - val);}
+
                             if (*p == ' ') {
                                 scan_blank(tmp);
                             }
@@ -274,8 +279,8 @@ namespace json {
                                     return false;
                                 }
                                 isJsFun = true;
+                                vallen = int (p - val);
                             }
-                            vallen = int (p - val);
                             value = std::string(val, vallen);
                             if (isJsFun) {
                                 value._flags |= flags_is_jsfunction;
