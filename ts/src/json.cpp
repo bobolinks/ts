@@ -258,7 +258,12 @@ namespace json {
                             while (p < e && *p != '('  && *p != ' ' && *p != ',' && *p != ']' && *p != '}') {
                                 if (*p == '\n') {
                                     line++;
-                                    if (vallen == 0) {vallen = int (p - val);}
+                                    if (vallen == 0) {
+                                        vallen = int (p - val);
+                                        if (*(p - 1) == '\r') {
+                                            vallen--;
+                                        }
+                                    }
                                 }
                                 p++;
                             }
