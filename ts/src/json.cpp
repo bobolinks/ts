@@ -421,6 +421,18 @@ namespace json {
         return parserValue(src, (int)strlen(src), out, readx, line, err);
     }
     
+    bool isIdentifier(const char* s) {
+        if (!isalpha(*s)) {
+            return false;
+        }
+        while (*++s) {
+            if (*s != '_' && !isalpha(*s) && !isnumber(*s)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    
     std::string&    format(const ts::pie& js, std::string& out, bool quot, int align, int indent) {
         static const struct __spaces {
             char v[64] = {};
@@ -491,9 +503,10 @@ namespace json {
                 if (indent) {
                     out += std::string(_spaces.v, indsize + indent);
                 }
-                if (quot)out += "\"";
+                bool isIds = isIdentifier(it.first.c_str());
+                if (!isIds || quot)out += "\"";
                 out += it.first;
-                if (quot)out += "\"";
+                if (!isIds || quot)out += "\"";
                 out += ":";
                 if (indent) out += " ";
                 format(it.second, out, quot, align+1, indent);
