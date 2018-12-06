@@ -426,7 +426,7 @@ namespace json {
             return false;
         }
         while (*++s) {
-            if (*s != '_' && !isalpha(*s) && !isnumber(*s)) {
+            if (*s != '_' && !isalpha(*s) && !isdigit(*s)) {
                 return false;
             }
         }
