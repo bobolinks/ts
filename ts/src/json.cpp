@@ -238,7 +238,7 @@ namespace json {
                         scan_string(val, vallen);
                         if (vallen <= 0 || *val != *(val + vallen - 1)) {
                             /*error*/
-                            ts::string::format("illegal string : nearby %16s!", val);
+                            ts::string::format(err, "illegal string : nearby %16s!", val);
                             return false;
                         }
                         value = std::string(val + 1, vallen - 2);
@@ -364,7 +364,7 @@ namespace json {
                 
                 if (sidlen <= 0) {
                     /*error*/
-                    ts::string::format("missing id: nearby %16s!", sid);
+                    ts::string::format(err, "missing id: nearby %16s!", sid);
                     return false;
                 }
                 
@@ -377,7 +377,7 @@ namespace json {
                 
                 if (*comma != ':') {
                     /*error*/
-                    ts::string::format("missing : nearby %16s!", p - 1);
+                    ts::string::format(err, "illegal id: nearby %16s!", p - 1);
                     return false;
                 }
                 
