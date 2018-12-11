@@ -434,15 +434,11 @@ namespace json {
     }
     
     std::string&    format(const ts::pie& js, std::string& out, bool quot, int align, int indent) {
-        static const struct __spaces {
-            char v[64] = {};
-            __spaces(void) {
-                memset(v, ' ', sizeof(v));
-            }
-        } _spaces;
-        int indsize = align * indent;
-        if (indsize > 64) indsize = 64;
-        
+        std::string sIndentPre((align ? (align - 1) : 0) * indent, ' ');
+        std::string sIndent(align * indent, ' ');
+        if (align) sIndentPre.insert(0, "\r\n");
+        if (align) sIndent.insert(0, "\r\n");
+
         std::type_index idx = js.type();
         if (idx == typeid(int64_t)) {
             char zb[64];
@@ -465,43 +461,34 @@ namespace json {
         }
         else if (idx == typeid(std::vector<ts::pie>)) {
             out += "[";
-            if (indent) {
-                out += "\r\n";
-            }
-            int lstcnt = 0;
+            bool hasObject = false;
             for (auto& it : js.array()) {
-                if (it.isMap()) {
-                    out += std::string(_spaces.v, indsize + indent);
+                if (it.isMap() || it.isArray()) { hasObject = true; break;}
+            }
+            for (auto& it : js.array()) {
+                if (hasObject) {
+                    out += sIndent;
                 }
-                format(it, out, quot, align+1, indent);
+                format(it, out, quot, align ? align+1 : 0, indent);
                 out += ",";
-                if (indent && it.isMap()) {
-                    out += "\r\n";
-                    lstcnt = 3;
-                }
-                else lstcnt = 1;
             }
-            if (lstcnt) {
-                out.replace(out.length() - lstcnt, lstcnt, "");
+            if (js.array().size()) {
+                out.replace(out.length() - 1, 1, "");
             }
-            if (indent) {
-                out += "\r\n";
-            }
-            if (indsize) {
-                out += std::string(_spaces.v, indsize);
+            if (hasObject) {
+                out += sIndentPre;
             }
             out += "]";
         }
         else if (idx == typeid(std::map<std::string, ts::pie>)) {
-            if (indent) {
-                out += "{\r\n";
-            }
-            else {
-                out += "{";
+            out += "{";
+            bool hasObject = false;
+            for (auto& it : js.map()) {
+                if (it.second.isMap() || it.second.isArray()) { hasObject = true; break;}
             }
             for (auto& it : js.map()) {
-                if (indent) {
-                    out += std::string(_spaces.v, indsize + indent);
+                if (hasObject) {
+                    out += sIndent;
                 }
                 bool isIds = isIdentifier(it.first.c_str());
                 if (!isIds || quot)out += "\"";
@@ -511,18 +498,12 @@ namespace json {
                 if (indent) out += " ";
                 format(it.second, out, quot, align+1, indent);
                 out += ",";
-                if (indent) {
-                    out += "\r\n";
-                }
             }
             if (js.map().size()) {
-                out.replace(out.length() - (indent ? 3 : 1), indent ? 3 : 1, "");
+                out.replace(out.length() - 1, 1, "");
             }
-            if (indent) {
-                out += "\r\n";
-            }
-            if (indsize) {
-                out += std::string(_spaces.v, indsize);
+            if (hasObject) {
+                out += sIndentPre;
             }
             out += "}";
         }
@@ -530,7 +511,7 @@ namespace json {
     }
     
     std::string&    format(const ts::pie& js, std::string& out, bool quot, bool align) {
-        return format(js, out, quot, 0, 2);
+        return format(js, out, quot, align, 2);
     }
     
     bool            fromFile(ts::pie& out, const char* file, std::string& err) {
