@@ -68,13 +68,6 @@ namespace xml {
         const char* e = p + ((len != -1) ? len : len = (int)strlen(src));
         const char* tk = nullptr;
         
-        if (element.isMap() == false) {
-            element = std::map<std::string, ts::pie>{};
-        }
-        std::map<std::string, ts::pie>& props = element.map();
-        element.map()["childs"] = std::vector<ts::pie>{};
-        std::vector<ts::pie>& childs = element.map()["childs"].array();
-
         if (!ts::json::skip_unmeaning(err, p, len, line)) {
             return false;
         }
@@ -86,6 +79,14 @@ namespace xml {
             ts::string::format(err, "[%d] unexpected token nearby %16s...!", line, p - 2);
             return false;
         }
+        
+        if (element.isMap() == false) {
+            element = std::map<std::string, ts::pie>{};
+        }
+        std::map<std::string, ts::pie>& props = element.map();
+        element.map()["childs"] = std::vector<ts::pie>{};
+        std::vector<ts::pie>& childs = element.map()["childs"].array();
+
         p++;
 
         do {
@@ -210,7 +211,43 @@ namespace xml {
             if (strncasecmp(sTag.c_str(), "br", 2) == 0) {
                 continue;
             }
-            
+            else if (strncasecmp(sTag.c_str(), "script", 6) == 0) {
+                const char* pscrbe = p;
+                while (p < e) {
+                    if (*p == '\n') {
+                        p++;
+                        line++;
+                    }
+                    else if( *p == '<') { //found <
+                        const char* pscrend = p;
+                        p++;
+                        if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line)) {
+                            return false;
+                        }
+                        if (*p == '/') {
+                            p++;
+                            if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line)) {
+                                return false;
+                            }
+                            if (strncasecmp(p, "script", 6) == 0) {//got it
+                                p += 6;
+                                if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line) || *p != '>') {
+                                    ts::string::format(err, "[%d] </script> not found!", line);
+                                    return false;
+                                }
+                                childs.push_back(std::string(pscrbe, (int)(pscrend - pscrbe)));
+                                p++;
+                                break;
+                            }
+                        }
+                    }
+                    else {
+                        p++;
+                    }
+                }
+                continue;
+            }
+
             //parser childs
             while (p < e) {
                 if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line)) {
@@ -266,6 +303,9 @@ namespace xml {
             if (!parserElement(src, (int)strlen(src), sub, line, err)) {
                 return false;
             }
+            if (sub.isMap() && sub.map().size() == 0) {
+                childs.pop_back();
+            }
         }
         return true;
     }
@@ -297,7 +337,7 @@ namespace xml {
         }
         else if (idx == typeid(std::vector<ts::pie>)) {
             for (auto& it : js.array()) {
-                format(it, out, quot, it.isMap() ? (indent + 1) : indent);
+                format(it, out, quot, indent);
             }
         }
         else if (idx == typeid(std::map<std::string, ts::pie>)) {

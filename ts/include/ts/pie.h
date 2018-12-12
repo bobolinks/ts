@@ -257,6 +257,70 @@ struct pie final {
         return map()[key];
     }
     
+    inline pie& got(const char* path) {
+        if ( (*path == '[' && !isArray()) || (*path != '[' &&!isMap())) {
+            throw std::bad_cast();
+        }
+        const char* p = path;
+        const char* dot = strrchr(p, '.');
+        ts::pie* pnode = nullptr;
+        if (dot) {
+            const char* pp = dot + 1;
+            if (*p == '[') { //array
+                if ( *(p + 1) == '+') { // add new
+                    array().push_back(0);
+                    pnode = &*array().rbegin();
+                    if (*pp == '[') {
+                        *pnode = std::vector<pie>{};
+                    }
+                    else {
+                        *pnode = std::map<std::string, pie>{};
+                    }
+                }
+                else {
+                    int index = atoi(p + 1);
+                    if (index < 0 || index >= array().size()) {
+                        throw std::out_of_range("");
+                    }
+                    pnode = &array()[index];
+                }
+            }
+            else { //map
+                std::string name(p, dot - p);
+                auto it = map().find(name);
+                if (it == map().end()) {
+                    pnode = &map()[name];
+                    if (*pp == '[') {
+                        *pnode = std::vector<pie>{};
+                    }
+                    else {
+                        *pnode = std::map<std::string, pie>{};
+                    }
+                }
+                else pnode = &it->second;
+            }
+            return pnode->got(pp);
+        }
+        else {
+            if (*p == '[') { //array
+                if ( *(p + 1) == '+') { // add new
+                    array().push_back(0);
+                    pnode = &*array().rbegin();
+                }
+                else {
+                    int index = atoi(p + 1);
+                    if (index < 0 || index >= array().size()) {
+                        throw std::out_of_range("");
+                    }
+                    pnode = &array()[index];
+                }
+            }
+            else { //map
+                return map()[p];
+            }
+        }
+    }
+    
     inline std::map<std::string,pie>::const_iterator find(const char* key) const {
         return map().find(key);
     }
