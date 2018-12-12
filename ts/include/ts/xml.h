@@ -25,10 +25,10 @@
 _TS_NAMESPACE_BEGIN
 
 namespace xml {
-    bool            parse(ts::pie& out, const char* src, std::string& err);
+    bool            parse(ts::pie& out, const char* src, std::string& err, const char* tags_excluding = "script,style");
     std::string&    format(const ts::pie& js, std::string& out);
     
-    bool            fromFile(ts::pie& out, const char* file, std::string& err);
+    bool            fromFile(ts::pie& out, const char* file, std::string& err, const char* tags_excluding = "script,style");
     long            toFile(const ts::pie& js, const char* file);
 };
 

@@ -1,4 +1,7 @@
 #include <memory>
+#include <sstream>
+#include <iostream>
+#include <set>
 #include <ts/json.h>
 #include <ts/xml.h>
 #include <ts/string.h>
@@ -63,7 +66,7 @@ namespace xml {
         }
     }
     
-    bool    parserElement(const char*& p, int len, ts::pie& element, int& line, std::string& err) {
+    bool    parserElement(const char*& p, int len, ts::pie& element, int& line, std::string& err, std::set<std::string>& tags_filter) {
         const char* src = p;
         const char* e = p + ((len != -1) ? len : len = (int)strlen(src));
         const char* tk = nullptr;
@@ -163,7 +166,8 @@ namespace xml {
                 }
                 
                 if (*p != '=') { //value type property
-                    props[sID] = true;
+                    props[sID] = "true";
+                    props[sID]._flags |= ts::json::flags_is_boolean;
                     continue;
                 }
                 
@@ -211,7 +215,7 @@ namespace xml {
             if (strncasecmp(sTag.c_str(), "br", 2) == 0) {
                 continue;
             }
-            else if (strncasecmp(sTag.c_str(), "script", 6) == 0) {
+            else if (tags_filter.find(sTag) != tags_filter.end()) {
                 const char* pscrbe = p;
                 while (p < e) {
                     if (*p == '\n') {
@@ -229,8 +233,8 @@ namespace xml {
                             if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line)) {
                                 return false;
                             }
-                            if (strncasecmp(p, "script", 6) == 0) {//got it
-                                p += 6;
+                            if (strncasecmp(p, sTag.c_str(), sTag.length()) == 0) {//got it
+                                p += sTag.length();
                                 if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line) || *p != '>') {
                                     ts::string::format(err, "[%d] </script> not found!", line);
                                     return false;
@@ -284,7 +288,7 @@ namespace xml {
                     else { //sub
                         p--;
                         ts::pie& sub = *childs.insert(childs.end(), std::map<std::string, ts::pie>{});
-                        if (!parserElement(p, len - (int)(p - src), sub, line, err)) {
+                        if (!parserElement(p, len - (int)(p - src), sub, line, err, tags_filter)) {
                             return false;
                         }
                     }
@@ -294,13 +298,22 @@ namespace xml {
         return true;
     }
     
-    bool parse(ts::pie& out, const char* src, std::string& err) {
+    bool parse(ts::pie& out, const char* src, std::string& err, const char* tags_excluding) {
+        std::set<std::string> tags_filter;
+        if (tags_excluding) {
+            std::istringstream f(tags_excluding);
+            std::string s;
+            while (std::getline(f, s, ',')) {
+                tags_filter.insert(s);
+            }
+        }
+        
         out = std::vector<ts::pie>{};
         int line = 1;
         while (*src) {
             std::vector<ts::pie>& childs = out.array();
             ts::pie& sub = *childs.insert(childs.end(), std::map<std::string, ts::pie>{});
-            if (!parserElement(src, (int)strlen(src), sub, line, err)) {
+            if (!parserElement(src, (int)strlen(src), sub, line, err, tags_filter)) {
                 return false;
             }
             if (sub.isMap() && sub.map().size() == 0) {
@@ -387,7 +400,7 @@ namespace xml {
         return format(js, out, false, 0);
     }
     
-    bool            fromFile(ts::pie& out, const char* file, std::string& err) {
+    bool            fromFile(ts::pie& out, const char* file, std::string& err, const char* tags_excluding) {
         FILE* fp = fopen(file, "rb");
         if (fp == nullptr) {
             log_error("file[%s] not found!", file);
@@ -400,7 +413,7 @@ namespace xml {
         fread(szb.get(), sz, 1, fp);
         szb.get()[sz] = 0;
         fclose(fp);
-        return parse(out, szb.get(), err);
+        return parse(out, szb.get(), err, tags_excluding);
     }
     
     long            toFile(const ts::pie& js, const char* file) {
