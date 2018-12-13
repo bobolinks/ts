@@ -227,7 +227,7 @@ namespace string {
     
     const char*  eatdot(const char* path, std::string& eaten) {
         const char* p = path;
-        const char* dot = strrchr(p, '.');
+        const char* dot = strchr(p, '.');
         if (dot) {
             eaten.assign(p, (int)(dot - p));
             return dot + 1;

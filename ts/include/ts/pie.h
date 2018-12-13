@@ -262,7 +262,7 @@ struct pie final {
             throw std::bad_cast();
         }
         const char* p = path;
-        const char* dot = strrchr(p, '.');
+        const char* dot = strchr(p, '.');
         ts::pie* pnode = nullptr;
         if (dot) {
             const char* pp = dot + 1;
