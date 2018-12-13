@@ -224,6 +224,20 @@ namespace string {
         }
         return s;
     }
+    
+    const char*  eatdot(const char* path, std::string& eaten) {
+        const char* p = path;
+        const char* dot = strrchr(p, '.');
+        if (dot) {
+            eaten.assign(p, (int)(dot - p));
+            return dot + 1;
+        }
+        else {
+            eaten = p;
+            return nullptr;
+        }
+    }
+
 };
 
 

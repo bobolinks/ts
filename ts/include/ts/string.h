@@ -35,6 +35,8 @@ namespace string {
     
     std::string  tostr(const uint8_t* ptr, int len);
     std::string  dump(const uint8_t* p, int len);
+    
+    const char*  eatdot(const char* path, std::string& eaten);
 };
 
 _TS_NAMESPACE_END
