@@ -22,13 +22,27 @@ _TS_NAMESPACE_BEGIN
 #define scan_blank(_token_)         while(p < e && isblank(*p)){if (*p == '\n'){line++;} p++;} _token_ = p;
 #define scan_token(_token_)         scan_blank(_token_);
 #define scan_id(_token_, _len_)     scan_blank(_token_); _len_ = 0; while(p < e && isalnum(*p)){p++; _len_++;}
-#define scan_string(_token_, _len_) scan_blank(_token_); _len_ = 2; {char _ew = *p++; while(p < e && (*p != _ew || *(p-1) == '\\')){if (*p == '\n' && *(p-1) == '\\'){line++;} p++; _len_++;} p++;}
+#define scan_string(_token_, _len_) scan_string_c(_token_, _len_, p, e, line) //scan_blank(_token_); _len_ = 2; {char _ew = *p++; while(p < e && (*p != _ew || *(p-1) == '\\')){if (*p == '\n' && *(p-1) == '\\'){line++;} p++; _len_++;} p++;}
 #define scan_ior(_token_, _len_, _has_dot_, _has_hex)    \
 scan_blank(_token_); _len_ = 0; \
 {bool _h1 = false, _h2 = false; _has_hex = 0; _has_dot_ = 0; if (*p == '-' || *p == '+') {p++; _len_++;} \
 while(p < e && (isdigit(*p) || (_h1 = (*p == '.')) || (_h2 = ishexnumber(*p)))){p++; _len_++; _has_dot_ |= _h1; _has_hex |= _h2; }}
 
 namespace json {
+    void scan_string_c(const char*& _token_, int& _len_, const char*& p, const char*& e, int& line) {
+        scan_blank(_token_); _len_ = 2;
+        char _ew = *p++;
+        while(p < e && *p != _ew) {
+            if (*p == '\n'){line++;}
+            else if (*p == '\\') {
+                p++; _len_++;
+                if (p >= e) break;
+            }
+            p++; _len_++;
+        }
+        p++;
+    }
+    
     bool skip_unmeaning(std::string& err, const char*& ptr, int len, int& line) {
         const char* e = ptr + len;
         while (ptr < e) {
