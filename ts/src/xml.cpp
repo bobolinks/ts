@@ -374,9 +374,14 @@ namespace xml {
             out += zb;
         }
         else if (idx == typeid(std::string)) {
-            if (quot) out += "\"";
-            out += unscapeString(js.get<std::string>());
-            if (quot) out += "\"";
+            if (js._flags & json::flags_is_jsfunction) {
+                out += js.get<std::string>();
+            }
+            else {
+                if (quot) out += "\"";
+                out += unscapeString(js.get<std::string>());
+                if (quot) out += "\"";
+            }
         }
         else if (idx == typeid(std::vector<ts::pie>)) {
             for (auto& it : js.array()) {
