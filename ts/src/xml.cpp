@@ -17,6 +17,36 @@ namespace xml {
 # define ishexnumber(_c_)            (_c_ == 'x' || (_c_ >= '0' && _c_ <= '9') || (_c_ >= 'a' && _c_ <= 'f')  || (_c_ >= 'A' && _c_ <= 'F') )
 #endif
 
+    static const std::map<char,char> _unscape_table {
+        {'n', '\n'},    // newline
+        {'t', '\t'},    // horizontal tab
+        {'v', '\v'},    // vertical tab
+        {'b', ' '},    // backspace replaced with space
+        {'r', '\r'},    // carriage return
+        {'f', '\f'},    // form feed
+        {'a', '\a'},    // alert
+        {'\\', '\\'},    // backslash
+        {'?', '\?'},    // question mark
+        {'\'', '\''},    // single quote
+        {'\"', '\"'},    // double quote
+    };
+
+    std::string unscapeString(const std::string& s) {
+        std::string sr = s;
+        std::string::size_type pos = sr.find('\\');
+        while (pos != std::string::npos) {
+            const char* p = sr.c_str() + pos + 1;
+            if (*p == 0) break;
+            auto it = _unscape_table.find(*p);
+            if (it != _unscape_table.end()) {
+                sr.replace(pos, 2, &it->second, 1);
+            }
+            pos = sr.find('\\', pos + 1);
+        }
+
+        return sr;
+    }
+    
     bool skip_parantheses(std::string& err, const char*& ptr, int len, int& line) {
         static std::pair<char, char> setParantheses {'<','>'};
         return json::skip_parantheses(err, ptr, len, line, setParantheses);
@@ -345,7 +375,7 @@ namespace xml {
         }
         else if (idx == typeid(std::string)) {
             if (quot) out += "\"";
-            out += js.get<std::string>();
+            out += unscapeString(js.get<std::string>());
             if (quot) out += "\"";
         }
         else if (idx == typeid(std::vector<ts::pie>)) {
