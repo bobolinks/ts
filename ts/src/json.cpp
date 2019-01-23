@@ -73,7 +73,7 @@ namespace json {
                     }
                 }
                 if (*ptr == 0 && (*(ptr - 1) != '/' || *(ptr - 2) != '*')) {
-                    ts::string::format(err, "Unterminated /* comment nearby %16s...!", ptr - 2);
+                    ts::string::format(err, "Unterminated /* comment nearby %.64s...!", ptr - 2);
                     return false;
                 }
             }
@@ -111,7 +111,7 @@ namespace json {
     bool skip_parantheses(std::string& err, const char*& ptr, int len, int& line, const std::pair<char, char>& parantheses) {
         const char* e = ptr + len;
         if (*ptr != parantheses.first) {
-            ts::string::format(err, "exptected { but found '%1s' nearby %16s...!", ptr, ptr);
+            ts::string::format(err, "exptected { but found '%1s' nearby %.64s...!", ptr, ptr);
             return false;
         }
         ptr++;
@@ -134,7 +134,7 @@ namespace json {
             }
         }
         if (count) {
-            ts::string::format(err, "Unterminated { nearby %16s...!", ptr - 2);
+            ts::string::format(err, "Unterminated { nearby %.64s...!", ptr - 2);
             return false;
         }
         return true;
@@ -252,7 +252,7 @@ namespace json {
                         scan_string(val, vallen);
                         if (vallen <= 0 || *val != *(val + vallen - 1)) {
                             /*error*/
-                            ts::string::format(err, "illegal string : nearby %16s!", val);
+                            ts::string::format(err, "illegal string : nearby %.64s!", val);
                             return false;
                         }
                         value = std::string(val + 1, vallen - 2);
@@ -378,7 +378,7 @@ namespace json {
                 
                 if (sidlen <= 0) {
                     /*error*/
-                    ts::string::format(err, "missing id: nearby %16s!", sid);
+                    ts::string::format(err, "missing id: nearby %.64s!", sid);
                     return false;
                 }
                 
@@ -391,7 +391,7 @@ namespace json {
                 
                 if (*comma != ':') {
                     /*error*/
-                    ts::string::format(err, "illegal id: nearby %16s!", p - 1);
+                    ts::string::format(err, "illegal id: nearby %.64s!", p - 1);
                     return false;
                 }
                 

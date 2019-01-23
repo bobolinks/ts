@@ -67,7 +67,7 @@ namespace xml {
             }
             if (tk == p || *tk != *p) {
                 /*error*/
-                ts::string::format(err, "illegal string : nearby %16s!", p - 2);
+                ts::string::format(err, "illegal string : nearby %.64s!", p - 2);
                 return false;
             }
             p++;
@@ -88,7 +88,7 @@ namespace xml {
                 }
                 if (*p != ' ' && *p != '/' && *p != '>') {
                     /*error*/
-                    ts::string::format(err, "illegal string : nearby %16s!", p - 2);
+                    ts::string::format(err, "illegal string : nearby %.64s!", p - 2);
                     return false;
                 }
             }
@@ -109,7 +109,7 @@ namespace xml {
         }
         else if (*p != '<') {
             /*error*/
-            ts::string::format(err, "[%d] unexpected token nearby %16s...!", line, p - 2);
+            ts::string::format(err, "[%d] unexpected token nearby %.64s...!", line, p - 2);
             return false;
         }
         
@@ -152,7 +152,7 @@ namespace xml {
                         continue;
                     }
                 }
-                ts::string::format(err, "[%d] unexpected token nearby %16s...!", line, p - 2);
+                ts::string::format(err, "[%d] unexpected token nearby %.64s...!", line, p - 2);
                 return false;
             }
             
@@ -186,7 +186,7 @@ namespace xml {
                 while(p < e && (isalnum(*p) || *p == '$' || *p == '#' || *p == '-' || *p == ':' || *p == '@')){p++;}
 
                 if (p == tk) {
-                    ts::string::format(err, "[%d] unexpected token nearby %16s...!", line, p - 2);
+                    ts::string::format(err, "[%d] unexpected token nearby %.64s...!", line, p - 2);
                     return false;
                 }
                 std::string sID(tk, (int)(p - tk));
