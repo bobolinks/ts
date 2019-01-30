@@ -183,7 +183,7 @@ namespace xml {
                 }
                 
                 tk = p;
-                while(p < e && (isalnum(*p) || *p == '$' || *p == '#' || *p == '-' || *p == ':' || *p == '@')){p++;}
+                while(p < e && (isalnum(*p) || *p == '$' || *p == '#' || *p == '-' || *p == '_' || *p == ':' || *p == '@')){p++;}
 
                 if (p == tk) {
                     ts::string::format(err, "[%d] unexpected token nearby %.64s...!", line, p - 2);
