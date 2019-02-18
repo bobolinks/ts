@@ -20,6 +20,7 @@
 #define _TS_HTTP_INC_
 #pragma once
 
+#include <map>
 #include <ts/net.h>
 
 _TS_NAMESPACE_BEGIN
@@ -63,6 +64,8 @@ namespace net { namespace http {
     private:
         struct http_server_cxt*  _cxt;
     };
+    
+    int request(const char* url, const char* method, std::string& rspBody, const char* contentType = nullptr, const std::string* body = nullptr, std::map<std::string, std::string>* cookie = nullptr, std::map<std::string, std::string>* rspCookie = nullptr);
 }};
 
 _TS_NAMESPACE_END
