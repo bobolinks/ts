@@ -827,7 +827,7 @@ void     runnable::background(std::shared_ptr<bind_base_t> ca) {
 //_______________________________________________________________________________________________________________
 bool    parasite::verify(bool log) {
     if (!_host.running()) {
-        log_error("worker not found!");
+        if (log) log_error("worker not found!");
         return false;
     }
     if (&_host != runnable::current()) {
