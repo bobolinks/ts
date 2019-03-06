@@ -162,6 +162,9 @@ namespace json {
         const char* tk = nullptr;
         
         while (p < e) {
+            if (!skip_unmeaning(err, p, len, line)) {
+                return false;
+            }
             scan_token(tk);
             if (p >= e) {
                 /*error*/
@@ -202,6 +205,9 @@ namespace json {
                         value = std::vector<ts::pie>{};
                     }
 
+                    if (!skip_unmeaning(err, p, len, line)) {
+                        return false;
+                    }
                     scan_token(tk);
                     if (*tk == ']') { /*empty list*/
                         p++;
@@ -219,6 +225,9 @@ namespace json {
                         
                         p += rx;
                         
+                        if (!skip_unmeaning(err, p, len, line)) {
+                            return false;
+                        }
                         scan_token(tk);
                         
                         if (*tk == ']') {
@@ -231,6 +240,9 @@ namespace json {
                         }
                         else { /*again*/
                             p++;
+                            if (!skip_unmeaning(err, p, len, line)) {
+                                return false;
+                            }
                             scan_token(tk);
                             if (*tk == ']') {
                                 p++;
@@ -248,6 +260,9 @@ namespace json {
                     const char* val = nullptr;
                     int vallen = 0;
                     
+                    if (!skip_unmeaning(err, p, len, line)) {
+                        return false;
+                    }
                     if (isstring(*tk)) {
                         scan_string(val, vallen);
                         if (vallen <= 0 || *val != *(val + vallen - 1)) {
@@ -332,6 +347,9 @@ namespace json {
         const char* e = src + ((len != -1) ? len : len = (int)strlen(src));
         const char* tk = nullptr;
         
+        if (!skip_unmeaning(err, p, len, line)) {
+            return false;
+        }
         scan_token(tk);
         if (p >= e || *tk != '{') {
             /*error*/
@@ -342,6 +360,9 @@ namespace json {
         { /*map*/
             p++;
             
+            if (!skip_unmeaning(err, p, len, line)) {
+                return false;
+            }
             scan_token(tk);
             if (*tk == '}') { /*empty map*/
                 p++;
@@ -353,6 +374,9 @@ namespace json {
                 const char* sid = nullptr;
                 int sidlen = 0;
                 
+                if (!skip_unmeaning(err, p, len, line)) {
+                    return false;
+                }
                 scan_blank(sid); sidlen = 0;
                 char endWith = *sid == '\"' ? '\"' : ':';
                 if (endWith == '\"') {
@@ -382,6 +406,10 @@ namespace json {
                     return false;
                 }
                 
+                if (!skip_unmeaning(err, p, len, line)) {
+                    return false;
+                }
+
                 std::string sId(sid, sidlen);
                 
                 const char* comma = nullptr;
@@ -405,6 +433,10 @@ namespace json {
                 
                 p += rx;
                 
+                if (!skip_unmeaning(err, p, len, line)) {
+                    return false;
+                }
+
                 scan_token(tk);
                 
                 if (*tk == '}') {
@@ -417,6 +449,9 @@ namespace json {
                 }
                 else { /*again*/
                     p++;
+                    if (!skip_unmeaning(err, p, len, line)) {
+                        return false;
+                    }
                     scan_token(tk);
                     if (*tk == '}') {
                         p++;
