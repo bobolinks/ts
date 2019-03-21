@@ -471,7 +471,7 @@ namespace json {
     }
     
     bool isIdentifier(const char* s) {
-        if (!isalpha(*s)) {
+        if (!isalpha(*s) && *s != '$' && *s != '_') {
             return false;
         }
         while (*++s) {
