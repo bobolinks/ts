@@ -278,7 +278,7 @@ namespace json {
                         bool has_dot = false, has_hex = false;
                         const char* p_save = p;
                         scan_ior(val, vallen, has_dot, has_hex);
-                        if (vallen <= 0 || (*p != ' ' && *p != ',' && *p != ']' && *p != '}')) { //deal as string
+                        if (vallen <= 0 || (*p != ' ' && *p != ',' && *p != ']' && *p != '}' && *p != '\r' && *p != '\n')) { //deal as string
                             p = p_save;
                             scan_blank(val); vallen = 0;
                             
