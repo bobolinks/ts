@@ -109,7 +109,7 @@ namespace xml {
         }
         else if (*p != '<') {
             /*error*/
-            ts::string::format(err, "[%d] unexpected token nearby %.64s...!", line, p - 2);
+            ts::string::format(err, "[%d] unexpected token nearby %.64s...!", line, p);
             return false;
         }
         
@@ -147,6 +147,7 @@ namespace xml {
                             p += 3;
                             break;
                         }
+                        p++;
                     }
                     if (p < e) {
                         continue;
@@ -183,7 +184,7 @@ namespace xml {
                 }
                 
                 tk = p;
-                while(p < e && (isalnum(*p) || *p == '$' || *p == '#' || *p == '-' || *p == '_' || *p == ':' || *p == '@')){p++;}
+                while(p < e && (isalnum(*p) || *p == '$' || *p == '#' || *p == '-' || *p == '_' || *p == ':' || *p == '@' || *p == '.')){p++;}
 
                 if (p == tk) {
                     ts::string::format(err, "[%d] unexpected token nearby %.64s...!", line, p - 2);
