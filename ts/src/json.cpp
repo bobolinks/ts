@@ -378,24 +378,27 @@ namespace json {
                     return false;
                 }
                 scan_blank(sid); sidlen = 0;
-                char endWith = *sid == '\"' ? '\"' : ':';
-                if (endWith == '\"') {
+                char endWith = (*sid == '\"' || *sid == '\'') ? *sid : ':';
+                if (endWith == '\"' || endWith == '\'') {
                     p++;
                     sidlen++;
+                    while(p < e && *p != endWith){p++; sidlen++;}
                 }
-                while(p < e && !isblank(*p) && *p != endWith){p++; sidlen++;}
+                else {
+                    while(p < e && !isblank(*p) && *p != endWith){p++; sidlen++;}
+                }
                 if (sidlen <= 0) {
                     /*error*/
                     err = "illegal id found!";
                     return false;
                 }
-                if (endWith == '\"') {
+                if (endWith == '\"' || endWith == '\'') {
                     p++;
                     sidlen++;
                 }
                 
                 //remove "
-                if (*sid == '\"' && *(sid + sidlen - 1) == '\"') {
+                if ( (*sid == '\"' || *sid == '\'') && (*(sid + sidlen - 1) == *sid) ) {
                     sid++;
                     sidlen -= 2;
                 }
