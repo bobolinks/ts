@@ -353,6 +353,37 @@ struct pie final {
         }
         return true;
     }
+    
+    bool each(std::function<bool(pie& parent, const char* path, const char* name, pie& item, int level)> func, const char* path, int level = 0){
+        if (isMap()) {
+            for (auto& it : map()) {
+                std::string subpath = std::string(path ? path : "") + "/" + it.first.c_str();
+                if (func(*this, subpath.c_str(), it.first.c_str(), it.second, level) == false) {
+                    return false;
+                }
+                if (it.second.each(func, subpath.c_str(), level + 1) == false) {
+                    return false;
+                }
+            }
+        }
+        else if (isArray()) {
+            char szidx[32];
+            int idx = 0;
+            const char* name_base = nullptr;
+            for (auto& it : array()) {
+                snprintf(szidx, sizeof(szidx), "[%d]", idx);
+                idx++;
+                std::string subpath = std::string(path ? path : "") + szidx;
+                if (func(*this, subpath.c_str(), szidx, it, level) == false) {
+                    return false;
+                }
+                if (it.each(func, subpath.c_str(), level + 1) == false) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 public:
     int _flags; /*custom flags*/
     
