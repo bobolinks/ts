@@ -233,6 +233,10 @@ namespace xml {
                     props[sID] = std::stoll(sValue);
                 }
                 
+                if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line)) {
+                    return false;
+                }
+
                 if (*p == '/') {//touch the end
                     p++;
                     if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line) || *p != '>') {
