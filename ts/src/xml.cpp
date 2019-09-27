@@ -157,7 +157,7 @@ namespace xml {
                 return false;
             }
             
-            props["tag"] = sTag;
+            element.setTag(sTag.c_str());
             
             if (!ts::json::skip_unmeaning(err, p, len - (int)(p - src), line)) {
                 return false;
@@ -399,14 +399,12 @@ namespace xml {
             }
             out += std::string(_spaces.v, indent);
             out += "<";
-            std::string sTag = "";
-            auto ittag = js.map().find("tag");
-            if (ittag != js.map().end()) {
-                sTag = ittag->second.get<std::string>();
+            std::string sTag = js.tag();
+            if (sTag.length()) {
                 out += sTag;
             }
             for (auto& it : js.map()) {
-                if (it.first == "tag" || it.first == "childs" || it.second.isMap() || it.second.isArray()) {
+                if (it.first == "childs" || it.second.isMap() || it.second.isArray()) {
                     continue;
                 }
                 out += " ";
@@ -428,7 +426,7 @@ namespace xml {
                 out += std::string(_spaces.v, indent);
             }
             out += "</";
-            if (ittag != js.map().end()) {
+            if (sTag.length()) {
                 out += sTag;
             }
             out += ">\r\n";

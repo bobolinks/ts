@@ -108,27 +108,32 @@ struct pie final {
     explicit pie(pie&& old) : _type(old._type) {
         helper_t::move(old._type, &old._data, &_data);
         _flags = old._flags;
+        _tag = old._tag;
     }
     
     explicit pie(pie const& old) : _type(old._type)  {
         helper_t::copy(old._type, &old._data, &_data);
         _flags = old._flags;
+        _tag = old._tag;
     }
     
     template <class T, typename U = typename ___mapper_t<T>::type, class = typename std::enable_if<data_t::contains<T>::value>::type>
     pie(T&& value) : _type(typeid(U)) {
         new(&_data) U(std::forward<T>(value));
         _flags = 0;
+        _tag = "";
     }
     
     pie(int value) : _type(typeid(int64_t)) {
         new(&_data) int64_t(value);
         _flags = 0;
+        _tag = "";
     }
     
     pie(const char* value) : _type(typeid(std::string)) {
         new(&_data) std::string(value);
         _flags = 0;
+        _tag = "";
     }
 
     pie& operator = (pie&& old) {
@@ -136,6 +141,7 @@ struct pie final {
         helper_t::move(old._type, &old._data, &_data);
         _type = old._type;
         _flags = old._flags;
+        _tag = old._tag;
         return *this;
     }
     
@@ -144,6 +150,7 @@ struct pie final {
         helper_t::copy(old._type, &old._data, &_data);
         _type = old._type;
         _flags = old._flags;
+        _tag = old._tag;
         return *this;
     }
     
@@ -152,9 +159,11 @@ struct pie final {
         to._type = _type;
         memcpy(&to._data, &_data, sizeof(_data));
         to._flags = _flags;
+        to._tag = _tag;
         new(&_data) int64_t(0);
         _type = std::type_index(typeid(int64_t));
         _flags = 0;
+        _tag = "";
         return *this;
     }
     
@@ -164,6 +173,7 @@ struct pie final {
         new (&_data) U(value);
         _type = std::type_index(typeid(U));
         _flags = 0;
+        _tag = "";
         return *this;
     }
     
@@ -172,6 +182,7 @@ struct pie final {
         new (&_data) int64_t(value);
         _type = std::type_index(typeid(int64_t));
         _flags = 0;
+        _tag = "";
         return *this;
     }
 
@@ -180,6 +191,7 @@ struct pie final {
         new (&_data) std::string(value);
         _type = std::type_index(typeid(std::string));
         _flags = 0;
+        _tag = "";
         return *this;
     }
 
@@ -384,8 +396,17 @@ struct pie final {
         }
         return true;
     }
+    
+    inline const std::string& tag() const {
+        return _tag;
+    }
+    
+    inline void setTag(const char* newTag) {
+        _tag = newTag;
+    }
 public:
     int _flags; /*custom flags*/
+    std::string _tag;
     
 private:
     data_t::type _data;
