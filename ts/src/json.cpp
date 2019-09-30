@@ -1,4 +1,5 @@
 #include <memory>
+#include <set>
 #include <ts/json.h>
 #include <ts/string.h>
 #include <ts/log.h>
@@ -27,6 +28,8 @@ _TS_NAMESPACE_BEGIN
 scan_blank(_token_); _len_ = 0; \
 {bool _h1 = false, _h2 = false; _has_hex = 0; _has_dot_ = 0; if (*p == '-' || *p == '+') {p++; _len_++;} \
 while(p < e && (isdigit(*p) || (_h1 = (*p == '.')) || (_h2 = ishexnumber(*p)))){p++; _len_++; _has_dot_ |= _h1; _has_hex |= _h2; }}
+
+static std::set<std::string> jsKeywords = {"null", "undefined", "true", "false"};
 
 namespace json {
     void scan_string_c(const char*& _token_, int& _len_, const char*& p, const char*& e, int& line) {
@@ -317,10 +320,13 @@ namespace json {
                             }
                             value = std::string(val, vallen);
                             if (isJsFun) {
-                                value._flags |= flags_is_jsfunction;
+                                value._flags |= flags_is_jscode;
                             }
-                            else if (strncmp(val, "true", vallen) == 0 || strncmp(val, "false", vallen) == 0) {
-                                value._flags |= flags_is_boolean;
+                            else if (jsKeywords.find(value.get<std::string>()) != jsKeywords.end()) {
+                                value._flags |= flags_is_jscode;
+                                if (strncmp(val, "true", vallen) == 0 || strncmp(val, "false", vallen) == 0) {
+                                    value._flags |= flags_is_boolean;
+                                }
                             }
                             readx = (int)(p - src);
                             return true;
@@ -503,11 +509,11 @@ namespace json {
             out += zb;
         }
         else if (idx == typeid(std::string)) {
-            if (!(js._flags & (flags_is_jsfunction | flags_is_boolean))) {
+            if (!(js._flags & (flags_is_jscode | flags_is_boolean))) {
                 out += "\"";
             }
             out += js.get<std::string>();
-            if (!(js._flags & (flags_is_jsfunction | flags_is_boolean))) {
+            if (!(js._flags & (flags_is_jscode | flags_is_boolean))) {
                 out += "\"";
             }
         }

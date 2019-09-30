@@ -379,7 +379,7 @@ namespace xml {
             out += zb;
         }
         else if (idx == typeid(std::string)) {
-            if (js._flags & json::flags_is_jsfunction) {
+            if (js._flags & json::flags_is_jscode) {
                 out += js.get<std::string>();
             }
             else {
