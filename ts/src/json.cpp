@@ -320,7 +320,7 @@ namespace json {
                             }
                             value = std::string(val, vallen);
                             if (isJsFun) {
-                                value._flags |= flags_is_jscode;
+                                value._flags |= flags_is_jscode | flags_is_jsfunction;
                             }
                             else if (jsKeywords.find(value.get<std::string>()) != jsKeywords.end()) {
                                 value._flags |= flags_is_jscode;
@@ -509,11 +509,11 @@ namespace json {
             out += zb;
         }
         else if (idx == typeid(std::string)) {
-            if (!(js._flags & (flags_is_jscode | flags_is_boolean))) {
+            if (!(js._flags & (flags_is_jsfunction | flags_is_boolean))) {
                 out += "\"";
             }
             out += js.get<std::string>();
-            if (!(js._flags & (flags_is_jscode | flags_is_boolean))) {
+            if (!(js._flags & (flags_is_jsfunction | flags_is_boolean))) {
                 out += "\"";
             }
         }
