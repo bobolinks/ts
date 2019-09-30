@@ -509,11 +509,11 @@ namespace json {
             out += zb;
         }
         else if (idx == typeid(std::string)) {
-            if (!(js._flags & (flags_is_jsfunction | flags_is_boolean))) {
+            if (!(js._flags & (flags_is_jsfunction | flags_is_boolean | flags_is_jscode))) {
                 out += "\"";
             }
             out += js.get<std::string>();
-            if (!(js._flags & (flags_is_jsfunction | flags_is_boolean))) {
+            if (!(js._flags & (flags_is_jsfunction | flags_is_boolean | flags_is_jscode))) {
                 out += "\"";
             }
         }
