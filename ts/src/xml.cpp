@@ -358,7 +358,7 @@ namespace xml {
         return true;
     }
     
-    std::string&    format(const ts::pie& js, std::string& out, bool quot, int indent) {
+    std::string&    format(const ts::pie& js, std::string& out, bool quot, int indent, bool prop_tag) {
         static const struct __spaces {
             char v[64] = {};
             __spaces(void) {
@@ -390,7 +390,7 @@ namespace xml {
         }
         else if (idx == typeid(std::vector<ts::pie>)) {
             for (auto& it : js.array()) {
-                format(it, out, quot, indent);
+                format(it, out, quot, indent, prop_tag);
             }
         }
         else if (idx == typeid(std::map<std::string, ts::pie>)) {
@@ -400,11 +400,15 @@ namespace xml {
             out += std::string(_spaces.v, indent);
             out += "<";
             std::string sTag = js.tag();
+            if (!sTag.length() && prop_tag && js.has("tag")) {
+                auto ittag = js.map().find("tag");
+                sTag = ittag->second.get<std::string>();
+            }
             if (sTag.length()) {
                 out += sTag;
             }
             for (auto& it : js.map()) {
-                if (it.first == "childs" || it.second.isMap() || it.second.isArray()) {
+                if ((prop_tag && it.first == "tag") || it.first == "childs" || it.second.isMap() || it.second.isArray()) {
                     continue;
                 }
                 out += " ";
@@ -413,7 +417,7 @@ namespace xml {
                     continue;
                 }
                 out += "=";
-                format(it.second, out, true, 0);
+                format(it.second, out, true, 0, prop_tag);
             }
             auto itchilds = js.map().find("childs");
             if (itchilds == js.map().end() || itchilds->second.array().size() == 0) {
@@ -421,7 +425,7 @@ namespace xml {
                 return out;
             }
             out += ">";
-            format(itchilds->second, out, quot, indent + 1);
+            format(itchilds->second, out, quot, indent + 1, prop_tag);
             if (out.at(out.length() - 1) == '\n') {
                 out += std::string(_spaces.v, indent);
             }
@@ -434,8 +438,8 @@ namespace xml {
         return out;
     }
     
-    std::string&    format(const ts::pie& js, std::string& out) {
-        return format(js, out, false, 0);
+    std::string&    format(const ts::pie& js, std::string& out, bool prop_tag) {
+        return format(js, out, false, 0, prop_tag);
     }
     
     bool            fromFile(ts::pie& out, const char* file, std::string& err, const char* tags_excluding) {
