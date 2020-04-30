@@ -409,7 +409,7 @@ namespace json {
                     sidlen -= 2;
                 }
                 
-                if (sidlen <= 0) {
+                if (sidlen < 0) {
                     /*error*/
                     ts::string::format(err, "missing id: nearby %.64s!", sid);
                     return false;
